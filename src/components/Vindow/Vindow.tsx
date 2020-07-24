@@ -35,8 +35,8 @@ const Vindow = React.forwardRef<HTMLDivElement, Props>(({
   // Handle scrolling
   const throttleHandleScroll = useCallback(throttle(() => {
     // Updating anchor
-    const scrollTop = (forwardedRef as MutableRefObject<HTMLDivElement>)?.current?.scrollTop || 1
-    const currentAiming = Math.floor(scrollTop / itemHeight)
+    const scrollLeft = (forwardedRef as MutableRefObject<HTMLDivElement>)?.current?.scrollLeft || 1
+    const currentAiming = Math.floor(scrollLeft / itemHeight)
     setAiming(currentAiming)
   }, interval), [itemHeight])
 

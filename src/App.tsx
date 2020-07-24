@@ -60,7 +60,7 @@ function App () {
   return (
     <AppContext.Provider value={contextValue}>
       <div className={styles.app}>
-        <Timeline/>
+        {/*<Timeline/>*/}
         <Gallery/>
       </div>
     </AppContext.Provider>

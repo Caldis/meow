@@ -1,3 +1,5 @@
+@import "./style/global";
+
 /* Box sizing rules */
 *,
 *::before,
@@ -78,6 +80,9 @@ select {
 }
 
 /* Custom */
+body {
+  background-color: $darkColor;
+}
 button {
   user-select: none;
 }

@@ -23,10 +23,10 @@ const Gallery = (props: Props) => {
   // Sync the scrolling position from selected time
   useEffect(() => {
     if (time && time.source !== 'gallery') {
-      // Set the scrollTop with selected time
+      // Set the scrollLeft with selected time
       const index = TIME_DATA.indexOf(time)
       wrapperRef.current?.scrollTo({
-        top: index * screenSize.height,
+        top: index * screenSize.width,
         behavior: time.source === 'initial' ? 'auto' : 'smooth',
       })
     }
@@ -36,11 +36,21 @@ const Gallery = (props: Props) => {
   useEffect(() => {
     // Saving the ref reference with effect closure for cleanup the eventListener correctly
     const ref = wrapperRef.current
-    const handleWheel = throttle(() => {
-      const top = ref?.scrollTop || 0
-      const targetTime = TIME_DATA[Math.floor(top / screenSize.height)]
+    const throttleUpdate = throttle(() => {
+      const left = ref?.scrollLeft || 0
+      const targetTime = TIME_DATA[Math.floor(left / screenSize.width)]
       timeDispatch({ source: 'gallery', payload: targetTime })
     }, 200)
+    const handleWheel = (e: MouseWheelEvent) => {
+      if (ref) {
+        // throttleUpdate()
+        if (e.deltaY) {
+          e.preventDefault()
+          // Transform the vertical scrolling to horizontal
+          ref.scrollLeft = ref.scrollLeft + e.deltaY
+        }
+      }
+    }
     ref?.addEventListener('wheel', handleWheel)
     return () => ref?.removeEventListener('wheel', handleWheel)
   }, [screenSize, timeDispatch])
@@ -48,7 +58,7 @@ const Gallery = (props: Props) => {
   return (
     <main className={styles.gallery}>
 
-      <div ref={wrapperRef} className={s(styles.wrapperLayer, { [styles.show]: isInitialized })}>
+      <div ref={wrapperRef} className={styles.wrapperLayer}>
         {
           TIME_DATA.map((item, index) => (
             <section key={index}>
