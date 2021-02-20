@@ -11,5 +11,5 @@ imagePaths.forEach(i => {
   const dateValue = (tags.DateCreated || tags['Date Created']).description
   const dateMoment = moment(dateValue).format('YYYY-MM-DD')
   const extname = path.extname(i)
-  fs.renameSync(i, `${dateMoment}${extname}`)
+  fs.renameSync(i, path.join(__dirname, `${dateMoment}${extname}`))
 })

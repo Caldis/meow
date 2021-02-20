@@ -28,8 +28,9 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
-    "build:cp": "react-scripts build && cp -r build/* docs/ && rm -rf build",
+    "build:code": "react-scripts build",
+    "build:photo": "node ./src/assets/rename.js",
+    "build": "npm run build:photo && npm run build:code",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
