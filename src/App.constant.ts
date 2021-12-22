@@ -5,7 +5,7 @@ export const assets = loadAllFrom(require.context('./assets', false, /\.(png|jpe
 
 export const TIME_DATA = assets.reduce((acc, cur) => {
   try {
-    const [date, dimension, title, desc] = (cur.split('/').last?.split('.') || [])[0].split('.')
+    const [date, dimension, title, desc] = (cur.split('/').last?.split('.') || [])
     const [width, height] = dimension.split('×')
     acc.push({
       date,
