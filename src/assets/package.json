@@ -9,7 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "exifreader": "^3.12.0",
+    "exif-js": "^2.3.0",
+    "image-size": "^1.0.0",
     "moment": "^2.27.0"
   }
 }

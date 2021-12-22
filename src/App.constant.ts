@@ -5,11 +5,16 @@ export const assets = loadAllFrom(require.context('./assets', false, /\.(png|jpe
 
 export const TIME_DATA = assets.reduce((acc, cur) => {
   try {
-    const base = (cur.split('/').last?.split('.') || [])[0].split('·')
-    const date = base[0]
-    const title = base[1]
-    const desc = base[2]
-    acc.push({ title, desc, date, path: cur })
+    const [date, dimension, title, desc] = (cur.split('/').last?.split('.') || [])[0].split('.')
+    const [width, height] = dimension.split('×')
+    acc.push({
+      date,
+      width: Number(width),
+      height: Number(height),
+      title,
+      desc,
+      path: cur
+    })
   } catch (e) {
     console.error('Loading asset error:', e)
   }

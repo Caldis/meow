@@ -33,6 +33,8 @@ export declare global {
 
   interface Time {
     date: string
+    width: number
+    height: number
     title?: string
     desc?: string
     path: string
