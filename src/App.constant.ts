@@ -2,7 +2,6 @@
 import { loadAllFrom } from './utils'
 // Assets
 export const assets = loadAllFrom(require.context('./assets', false, /\.(png|jpe?g|svg|webp)$/i)) as string[]
-console.log(assets)
 
 export const TIME_DATA = assets.reduce((acc, cur) => {
   try {

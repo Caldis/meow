@@ -41,7 +41,7 @@ const Gallery = (props: Props) => {
       const targetTime = TIME_DATA[Math.floor(left / screenSize.width)]
       timeDispatch({ source: 'gallery', payload: targetTime })
     }, 200)
-    const handleWheel = (e: MouseWheelEvent) => {
+    const handleWheel = (e: WheelEvent) => {
       if (ref) {
         // throttleUpdate()
         if (e.deltaY) {
