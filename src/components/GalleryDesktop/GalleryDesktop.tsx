@@ -50,6 +50,7 @@ const GalleryDesktop = (props: Props) => {
     })
   }, [screenSize])
 
+  // Step to fade in
   const [step, setStep] = useState<number>(0)
   useEffect(() => {
     if (isInitialized) {
