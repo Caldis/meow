@@ -3,7 +3,7 @@ import { loadAllFrom } from './utils'
 // Assets
 export const assets = loadAllFrom(require.context('./assets', false, /\.(png|jpe?g|svg|webp)$/i)) as string[]
 
-const assetsRemoveRepeat = assets.slice(0, assets.length - 1)
+const assetsRemoveRepeat = assets.slice(0, assets.length / 2)
 export const TIME_DATA = assetsRemoveRepeat.reduce((acc, cur) => {
   try {
     const [date, dimension, title, desc] = (cur.split('/').last?.split('.') || [])
