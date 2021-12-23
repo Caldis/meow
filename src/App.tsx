@@ -1,11 +1,10 @@
 // Libs
-import React, { useEffect, useReducer } from 'react'
+import React, { useEffect, useMemo, useReducer } from 'react'
 // Styles
 import './App.reset.scss'
 import styles from './App.module.scss'
 // Components
-import Timeline from './components/Timeline'
-import Gallery from './components/Gallery'
+import GalleryDesktop from './components/GalleryDesktop'
 // Utils
 import { AppContext } from './App.context'
 import { useInitializedDelay, useScreenSize } from './App.hook'
@@ -16,8 +15,11 @@ import { getAnchor } from './utils'
 function App () {
 
   // Global
-  const isInitialized = useInitializedDelay()
   const screenSize = useScreenSize()
+  const isInitialized = useMemo(() => {
+    const { width, height } = screenSize
+    return !!(width && height)
+  }, [screenSize])
 
   // Time
   const [time, timeDispatch] = useReducer((state: Time, action: TimeAction): Time => {
@@ -60,8 +62,7 @@ function App () {
   return (
     <AppContext.Provider value={contextValue}>
       <div className={styles.app}>
-        {/*<Timeline/>*/}
-        <Gallery/>
+        <GalleryDesktop/>
       </div>
     </AppContext.Provider>
   )

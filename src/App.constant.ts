@@ -11,6 +11,7 @@ export const TIME_DATA = assets.reduce((acc, cur) => {
       date,
       width: Number(width),
       height: Number(height),
+      aspectRatio: Number(width) / Number(height),
       title,
       desc,
       path: cur

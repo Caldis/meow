@@ -19,7 +19,9 @@ export function useScreenSize (interval = 300) {
 // Gain the Initialized flag with specific delay
 export function useInitializedDelay (delay = 50) {
   const [initialized, setInitialized] = useState(false)
-  useEffect(() => {setTimeout(() => setInitialized(true), delay)}, [delay])
+  useEffect(() => {
+    setTimeout(() => setInitialized(true), delay)
+  }, [delay])
   return initialized
 }
 

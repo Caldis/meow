@@ -12,7 +12,7 @@ const imagePaths = fs.readdirSync(__dirname).filter(i => i.toLowerCase().match(/
     const data = Exif.readFromBinaryFile(fs.readFileSync(i).buffer)
     const dateMoment = moment(data.DateTimeOriginal, 'YYYY:MM:DD hh:mm:ss').format('YYYY-MM-DD')
     const dimension = await sizeOf(i)
-    const extname = path.extname(i)
+    const extname = path.extname(i).toLowerCase()
     fs.renameSync(i, path.join(__dirname, `${dateMoment}.${dimension.width}×${dimension.height}${extname}`))
   }
 })()

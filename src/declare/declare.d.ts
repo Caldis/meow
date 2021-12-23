@@ -35,6 +35,7 @@ export declare global {
     date: string
     width: number
     height: number
+    aspectRatio: number
     title?: string
     desc?: string
     path: string
