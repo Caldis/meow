@@ -14,8 +14,8 @@ Object.defineProperty(Array.prototype, 'last', {
 // Load Assets
 export const loadAllFrom = (r: __WebpackModuleApi.RequireContext) => r.keys().map(r)
 
-// Anchor
-export const getAnchor = (index: number, time?: Time) => `${index}`
-
 // Clamp
 export const clamp = (target: number, limit: number) => Math.min(Math.max(target, -limit), limit)
+
+// Range
+export const range = (min: number, max: number) => Math.random() * (max - min) + min;

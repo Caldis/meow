@@ -2,33 +2,5 @@
 
 .gallery {
   flex-grow: 1;
-  height: 100vh;
-
-  .wrapperLayer {
-    display: flex;
-    height: 100%;
-    overflow-y: hidden;
-    transition: all 1.2s;
-
-    section {
-      flex-shrink: 0;
-      height: 100%;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      .parallax {
-        display: flex;
-        justify-content: center;
-      }
-
-      .image {
-        user-select: none;
-        height: 80vh;
-        object-fit: cover;
-        border-radius: 10px;
-      }
-    }
-  }
+  position: relative;
 }

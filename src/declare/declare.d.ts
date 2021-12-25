@@ -24,14 +24,7 @@ export declare global {
     right: number
   }
 
-  type TimeSource = 'initial' | 'timeline' | 'gallery'
-
-  type TimeAction = {
-    source: TimeSource
-    payload: number | Time
-  }
-
-  interface Time {
+  interface Picture {
     date: string
     width: number
     height: number
@@ -39,6 +32,5 @@ export declare global {
     title?: string
     desc?: string
     path: string
-    source?: TimeSource
   }
 }
