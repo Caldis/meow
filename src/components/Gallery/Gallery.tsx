@@ -4,6 +4,7 @@ import React, { useContext, useEffect, useState, useRef } from 'react'
 import styles from './Gallery.module.scss'
 // Components
 import Picture from '../Picture'
+import Tab from '../Tab'
 // Utils
 import { AppContext } from 'App.context'
 import { GALLERY_DATA } from 'App.constant'
@@ -33,6 +34,7 @@ const Gallery = () => {
 
   return (
     <main className={styles.gallery}>
+      <Tab className={styles.tab}/>
       {
         isInitialized && GALLERY_DATA.slice(0, step).map((item, index) => (
           <Picture key={index} data={item}/>

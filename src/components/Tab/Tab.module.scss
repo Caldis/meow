@@ -1,0 +1,32 @@
+@import "../../style/global";
+
+.container {
+  user-select: none;
+  display: flex;
+  flex-direction: row;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+
+  .item {
+    cursor: pointer;
+    padding: 4px 12px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 10px;
+    margin: 1px;
+    transition: all 0.5s cubic-bezier(0.3, 0, 0.03, 1);
+    &:first-of-type {
+      margin-right: 0;
+    }
+  }
+  .itemActive {
+    color: $darkColor;
+  }
+
+  .overlay {
+    z-index: -1;
+    position: absolute;
+    border-radius: 4px;
+    background-color: white;
+    transition: all 0.5s cubic-bezier(0.3, 0, 0.03, 1);
+  }
+}

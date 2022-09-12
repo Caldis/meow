@@ -1,5 +1,5 @@
 // Libs
-import React, { useEffect, useMemo, useReducer } from 'react'
+import React, { useMemo } from 'react'
 // Styles
 import './App.reset.scss'
 import styles from './App.module.scss'
