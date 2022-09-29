@@ -21,4 +21,4 @@ export const GALLERY_DATA = assetsRemoveRepeat.reduce((acc, cur) => {
     console.error('Loading asset error:', e)
   }
   return acc
-}, [] as Picture[])
+}, [] as Pic[])

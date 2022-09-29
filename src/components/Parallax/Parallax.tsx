@@ -3,7 +3,7 @@ import React, { CSSProperties, HTMLAttributes, ReactElement, useEffect, useRef }
 // Styles
 import styles from './Parallax.module.scss'
 // Utils
-import { updateTarget } from './Parallax.constant'
+import { PARALLAX_INNER_PADDING, updateTarget } from './Parallax.constant'
 
 interface Props extends HTMLAttributes<HTMLDivElement> {
   children: ReactElement
@@ -32,7 +32,10 @@ const Parallax = ({ children, className, style, innerClassName, innerStyle }: Pr
   })
 
   return (
-    <div className={`${styles.parallax}${className ? ` ${className}` : ''}`} ref={outerRef} style={style}>
+    <div className={`${styles.parallax}${className ? ` ${className}` : ''}`} ref={outerRef} style={{
+      ...style,
+      padding: PARALLAX_INNER_PADDING
+    }}>
       <div className={`${styles.parallaxInner}${innerClassName ? ` ${innerClassName}` : ''}`} style={innerStyle} ref={innerRef}>
         {children}
       </div>

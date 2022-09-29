@@ -1,5 +1,7 @@
 import { throttle } from 'lodash'
 
+export const PARALLAX_INNER_PADDING = 10
+
 /*
  * Base attrs
  */

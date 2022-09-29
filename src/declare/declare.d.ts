@@ -10,6 +10,8 @@ export declare global {
   interface Size {
     width: number
     height: number
+    fullWidth?: number
+    fullHeight?: number
   }
 
   interface Point {
@@ -20,11 +22,14 @@ export declare global {
   interface Rect {
     top: number
     left: number
-    bottom: number
-    right: number
+    angle: number
+    width: number
+    height: number
+    fullWidth?: number
+    fullHeight?: number
   }
 
-  interface Picture {
+  interface Pic {
     date: string
     width: number
     height: number
