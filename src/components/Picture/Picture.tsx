@@ -64,7 +64,7 @@ const Picture = ({ index, pic, rect }: Props) => {
             src={pic.path}
             alt={pic.title}
             loading="lazy"
-            style={{ width, height, opacity: 0 }}
+            style={{ width, height }}
             onLoad={updateLoaded}
           />
           <span className={styles.label} style={{
