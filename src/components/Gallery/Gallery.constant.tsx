@@ -3,4 +3,4 @@ export enum GalleryViewMode {
   sequential = 1,
 }
 
-export const SEQUENTIAL_COLUMNS = 3
+export const SEQUENTIAL_BREAK_POINT = 300

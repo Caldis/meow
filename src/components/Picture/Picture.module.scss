@@ -1,7 +1,7 @@
 .picture {
   position: absolute;
   will-change: left, top, transform, filter, opacify;
-  transition: all 1.0s cubic-bezier(0.14, 0.75, 0.25, 0.93);
+  transition: all 3.0s cubic-bezier(0.14, 0.75, 0.22, 1.00);
 
   .parallax {
     display: flex;

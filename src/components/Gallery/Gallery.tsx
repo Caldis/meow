@@ -9,8 +9,8 @@ import Picture from '../Picture'
 import { AppContext } from 'App.context'
 import { GALLERY_DATA } from 'App.constant'
 import { TabItemIdentifier } from 'components/Tab/Tab.constant'
-import { GalleryViewMode, SEQUENTIAL_COLUMNS } from 'components/Gallery/Gallery.constant'
-import { getRandomRect, getSequentialRect } from './Gallery.utils'
+import { GalleryViewMode } from 'components/Gallery/Gallery.constant'
+import { getColumnSlot, getRandomRect, getSequentialRect } from './Gallery.utils'
 
 const Gallery = () => {
 
@@ -38,7 +38,7 @@ const Gallery = () => {
           }))
           break
         case GalleryViewMode.sequential:
-          const columns = new Array(SEQUENTIAL_COLUMNS).fill(0).map(_ => []) as Rect[][]
+          const columns = new Array(getColumnSlot(screenSize)).fill(0).map(_ => []) as Rect[][]
           setData(GALLERY_DATA.map(pic => {
             const rect = getSequentialRect(pic, screenSize, columns)
             return { pic, rect }

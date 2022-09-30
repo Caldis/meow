@@ -1,5 +1,4 @@
 import { range } from 'utils'
-import { SEQUENTIAL_COLUMNS } from 'components/Gallery/Gallery.constant'
 import {
   PICTURE_INNER_PADDING,
   PICTURE_LABEL_LINE_HEIGHT,
@@ -7,6 +6,7 @@ import {
   PICTURE_LABEL_MARGIN_TOP
 } from 'components/Picture/Picture.constant'
 import { PARALLAX_INNER_PADDING } from 'components/Parallax/Parallax.constant'
+import { SEQUENTIAL_BREAK_POINT } from 'components/Gallery/Gallery.constant'
 
 const SAFE_PADDING = PARALLAX_INNER_PADDING + PICTURE_INNER_PADDING
 const SAFE_LABEL_HEIGHT = PICTURE_LABEL_LINE_HEIGHT + PICTURE_LABEL_MARGIN_TOP + PICTURE_LABEL_MARGIN_BOTTOM
@@ -43,9 +43,15 @@ export const getRandomRect = (data: Pic, screenSize: Size) => {
 }
 
 // SEQUENTIAL
-const getSequentialSize = (screenSize: Size, aspectRatio: number) => {
-  const width = (screenSize.width) / SEQUENTIAL_COLUMNS
-  const height = width / aspectRatio + SAFE_PADDING * 2
+export const getColumnSlot = (screenSize: Size) => {
+  // Guard: empty screen size
+  if (!screenSize) return 1
+  // Guard: small screen
+  return Math.floor(screenSize.width / SEQUENTIAL_BREAK_POINT) || 1
+}
+const getSequentialSize = (screenSize: Size, data: Pic) => {
+  const width = ((screenSize.width - 2 * SAFE_PADDING) / getColumnSlot(screenSize)) - (2 * SAFE_PADDING)
+  const height = width / data.aspectRatio + SAFE_PADDING * 2
   const fullWidth = width + SAFE_PADDING * 2
   const fullHeight = height + SAFE_PADDING * 2 + SAFE_LABEL_HEIGHT
   return {
@@ -65,7 +71,7 @@ const getSequentialColumn = (columns: Rect[][]) => {
   }
 }
 const getSequentialPosition = (screenSize: Size, imageSize: Size, column: { height: number; index: number }) => {
-  const left = column.index * (imageSize.fullWidth ?? imageSize.width)
+  const left = column.index * (imageSize.fullWidth ?? imageSize.width) + SAFE_PADDING
   const top = column.height + SAFE_PADDING * 2
   return {
     left,
@@ -73,7 +79,7 @@ const getSequentialPosition = (screenSize: Size, imageSize: Size, column: { heig
   }
 }
 export const getSequentialRect = (data: Pic, screenSize: Size, columns: Rect[][]) => {
-  const size = getSequentialSize(screenSize, data.aspectRatio)
+  const size = getSequentialSize(screenSize, data)
   const column = getSequentialColumn(columns)
   const position = getSequentialPosition(screenSize, size, column)
   const rect = {
