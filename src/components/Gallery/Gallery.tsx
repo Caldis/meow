@@ -9,8 +9,8 @@ import Picture from '../Picture'
 import { AppContext } from 'App.context'
 import { GALLERY_DATA } from 'App.constant'
 import { TabItemIdentifier } from 'components/Tab/Tab.constant'
-import { GalleryViewMode } from 'components/Gallery/Gallery.constant'
-import { getColumnSlot, getRandomRect, getSequentialRect } from './Gallery.utils'
+import { GalleryViewMode, SEQUENTIAL_BREAK_POINT, STAGE_BREAK_POINT } from 'components/Gallery/Gallery.constant'
+import { getColumnSlot, getRandomRect, getSequentialRect, getStageRect } from './Gallery.utils'
 
 const Gallery = () => {
 
@@ -38,9 +38,20 @@ const Gallery = () => {
           }))
           break
         case GalleryViewMode.sequential:
-          const columns = new Array(getColumnSlot(screenSize)).fill(0).map(_ => []) as Rect[][]
+          const sequentialColumns = {
+            current: new Array(getColumnSlot(screenSize, SEQUENTIAL_BREAK_POINT)).fill(0).map(_ => []) as Rect[][]
+          }
           setData(GALLERY_DATA.map(pic => {
-            const rect = getSequentialRect(pic, screenSize, columns)
+            const rect = getSequentialRect(pic, screenSize, sequentialColumns)
+            return { pic, rect }
+          }))
+          break
+        case GalleryViewMode.stage:
+          const stageColumns = {
+            current: new Array(getColumnSlot(screenSize, STAGE_BREAK_POINT)).fill(0).map(_ => []) as Rect[][]
+          }
+          setData(GALLERY_DATA.map(pic => {
+            const rect = getStageRect(pic, screenSize, stageColumns)
             return { pic, rect }
           }))
           break
@@ -55,7 +66,7 @@ const Gallery = () => {
         className={styles.tab}
         value={viewMode}
         onChange={handleModeChange}
-        items={[GalleryViewMode.random, GalleryViewMode.sequential]}
+        items={[GalleryViewMode.random, GalleryViewMode.sequential, GalleryViewMode.stage]}
       />
 
       {

@@ -1,7 +1,7 @@
 .picture {
   position: absolute;
-  will-change: left, top, transform, filter, opacify;
-  transition: all 3.0s cubic-bezier(0.14, 0.75, 0.22, 1.00);
+  will-change: left, top, width, height, transform, filter, opacify;
+  transition: all 3.0s cubic-bezier(0.15, 0.75, 0.05, 1.00);
 
   .parallax {
     display: flex;
@@ -18,6 +18,8 @@
       object-fit: cover;
       border-radius: 7px;
       background-color: #eee;
+      will-change: width, height;
+      transition: all 3.0s cubic-bezier(0.15, 0.75, 0.05, 1.00);
     }
 
     .label {

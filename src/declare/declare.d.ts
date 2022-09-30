@@ -8,6 +8,7 @@ export declare global {
 
   // Global Types
   interface Size {
+    slot?: number
     width: number
     height: number
     fullWidth?: number
