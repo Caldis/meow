@@ -23,7 +23,7 @@ export const RANDOM_MAX_WIDTH = 400
 export const SEQUENTIAL_BREAK_POINT = 300
 
 // STAGE
-export const STAGE_BREAK_POINT = 200
+export const STAGE_BREAK_POINT = 400
 export const STAGE_RATIO_BREAK_POINT = {
   // 中间值则按方形约束, 基准 1:1
   VERTICAL: 0.8, // 大于此值被认定为竖直图像, 基准 1:2
