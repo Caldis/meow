@@ -2046,11 +2046,6 @@
     "@webassemblyjs/ast" "1.11.1"
     "@xtuc/long" "4.2.2"
 
-"@xmldom/xmldom@^0.7.5":
-  version "0.7.5"
-  resolved "https://registry.yarnpkg.com/@xmldom/xmldom/-/xmldom-0.7.5.tgz#09fa51e356d07d0be200642b0e4f91d8e6dd408d"
-  integrity sha512-V3BIhmY36fXZ1OtVcI9W+FxQqxVLsPKcNjWigIaa81dLC9IolJl5Mt4Cvhmr0flUnjSpTdrbMTSbXqYqV5dT6A==
-
 "@xtuc/ieee754@^1.2.0":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@xtuc/ieee754/-/ieee754-1.2.0.tgz#eef014a3145ae477a1cbc00cd1e552336dceb790"
@@ -3973,13 +3968,6 @@ exif-js@^2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/exif-js/-/exif-js-2.3.0.tgz#9d10819bf571f873813e7640241255ab9ce1a814"
   integrity sha1-nRCBm/Vx+HOBPnZAJBJVq5zhqBQ=
-
-exifreader@^4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/exifreader/-/exifreader-4.1.0.tgz#ca924f50c5421217c89daa399c8b949976192e28"
-  integrity sha512-LzTW96ubaHRSWVD6bgANpZgWGHdtA/jsIdVjFVhDDN6k60wid8U6b3cIWSGTfRePjZlwvyt4nt12bIQ5ywUrBw==
-  optionalDependencies:
-    "@xmldom/xmldom" "^0.7.5"
 
 exit@^0.1.2:
   version "0.1.2"
@@ -6288,6 +6276,11 @@ picomatch@^2.0.4, picomatch@^2.2.1, picomatch@^2.2.2, picomatch@^2.2.3:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.3.0.tgz#f1f061de8f6a4bf022892e2d128234fb98302972"
   integrity sha512-lY1Q/PiJGC2zOv/z391WOTD+Z02bCgsFfvxoXXf6h7kv9o+WmsmzYqrAwY63sNgOxE4xEdq0WyUnXfKeBrSvYw==
+
+piexif@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/piexif/-/piexif-0.0.2.tgz#a58ac623ebd1a7f18fd455f42bbea6d80f6c221e"
+  integrity sha512-a78AfSOYCXAx+tj/46kzAntKbxlSLyXta75LL6OxPLtSPQwCvqx3OfPvUEHT5Y/9FZsgxtgBu4CUf90F44B5Sw==
 
 pirates@^4.0.1:
   version "4.0.4"
