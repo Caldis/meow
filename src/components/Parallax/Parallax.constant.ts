@@ -25,7 +25,8 @@ export const transform = (degX: number, degY: number) => `perspective(512px) tra
 export const resetTarget = () => {
   // Guard
   if (!currentTarget) return
-  // Reset style
+  // Restore CSS transition for smooth reset
+  currentTarget.style.transition = ''
   currentTarget.style.transform = transform(0, 0)
   // Reset rect
   currentTarget = undefined
@@ -42,6 +43,14 @@ export const updateTarget = (target: HTMLDivElement, options: { withRectCenter: 
     resetTarget()
     // Update current
     currentTarget = target
+    // After first paint, disable transition for instant mouse follow
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (currentTarget === target) {
+          target.style.transition = 'none'
+        }
+      })
+    })
   }
   if (options.withRectCenter) {
     throttledUpdateTargetRectCenter()
@@ -66,7 +75,7 @@ export const updateTargetRectCenter = () => {
   }
 }
 export const throttledUpdateTargetRectCenter = throttle(updateTargetRectCenter, 300)
-window.addEventListener('scroll', throttledUpdateTargetRectCenter)
+window.addEventListener('scroll', throttledUpdateTargetRectCenter, { passive: true })
 
 /*
  * Update pointerCenter with rectCenter diff at mouse moving
@@ -89,4 +98,4 @@ export const handleTracing = (e: MouseEvent) => {
   // Apply style to current target
   currentTarget.style.transform = transform(clampDiff.x, clampDiff.y)
 }
-window.addEventListener('mousemove', handleTracing)
+window.addEventListener('mousemove', handleTracing, { passive: true })

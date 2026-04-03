@@ -3,7 +3,7 @@
   .parallaxInner {
     will-change: transform;
     transform-style: preserve-3d;
-    transition: all .4s cubic-bezier(.125, .625, .125, .875);
+    transition: transform .4s cubic-bezier(.125, .625, .125, .875);
     transform: perspective(512px) translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg);
   }
 }

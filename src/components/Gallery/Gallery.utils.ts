@@ -28,21 +28,34 @@ const getRandomSize = (aspectRatio: number) => {
     height,
   }
 }
-const getRandomPosition = (screenSize: Size, imageSize: Size) => {
-  const left = range(SAFE_PADDING, screenSize.width - imageSize.width - SAFE_PADDING)
-  const top = range(SAFE_PADDING, screenSize.height - imageSize.height - SAFE_PADDING - SAFE_LABEL_HEIGHT)
+const getRandomPosition = (screenSize: Size, imageSize: Size, angle: number) => {
+  // Total element size including padding on both sides
+  const totalW = imageSize.width + 2 * SAFE_PADDING
+  const totalH = imageSize.height + 2 * SAFE_PADDING + SAFE_LABEL_HEIGHT
+  // Rotated bounding box expansion from rotation
+  const rad = Math.abs(angle) * Math.PI / 180
+  const cos = Math.cos(rad)
+  const sin = Math.sin(rad)
+  const extraX = ((totalW * cos + totalH * sin) - totalW) / 2
+  const extraY = ((totalW * sin + totalH * cos) - totalH) / 2
+  // Constrain within viewport
+  const minLeft = extraX
+  const maxLeft = screenSize.width - totalW - extraX
+  const minTop = extraY
+  const maxTop = screenSize.height - totalH - extraY
   return {
-    left,
-    top,
+    left: range(Math.max(0, minLeft), Math.max(minLeft, maxLeft)),
+    top: range(Math.max(0, minTop), Math.max(minTop, maxTop)),
   }
 }
 export const getRandomRect = (data: Pic, screenSize: Size) => {
   const imageSize = getRandomSize(data.aspectRatio)
-  const { left, top } = getRandomPosition(screenSize, imageSize)
+  const angle = range(-20, 20)
+  const { left, top } = getRandomPosition(screenSize, imageSize, angle)
   return {
     left,
     top,
-    angle: range(-20, 20),
+    angle,
     width: imageSize.width,
     height: imageSize.height,
   }

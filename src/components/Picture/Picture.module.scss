@@ -1,7 +1,12 @@
 .picture {
   position: absolute;
-  will-change: left, top, width, height, transform, filter, opacify;
+  will-change: transform, opacity, filter;
   transition: all 3.0s cubic-bezier(0.15, 0.75, 0.05, 1.00);
+
+  &.lightbox {
+    transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+                filter 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  }
 
   .parallax {
     display: flex;
@@ -9,26 +14,28 @@
   }
 
   .imageWrapper {
-    background-color: #f5f5f5;
-    border-radius: 10px;
-    box-shadow: 4px 0 16px #333;
+    background-color: #faf7f2;
+    border-radius: 6px;
+    box-shadow:
+      0 2px 8px rgba(10, 8, 6, 0.25),
+      0 8px 24px rgba(10, 8, 6, 0.15);
 
     .image {
       user-select: none;
       object-fit: cover;
-      border-radius: 7px;
-      background-color: #eee;
+      border-radius: 4px;
+      background-color: #eee9e2;
       will-change: width, height;
       transition: all 3.0s cubic-bezier(0.15, 0.75, 0.05, 1.00);
     }
 
     .label {
       display: block;
+      font-family: 'Instrument Serif', serif;
       font-size: 12px;
-      color: #666;
-      transform-origin: left;
-      transform: scale(0.7);
-      margin-left: 4px;
+      color: #8a7e72;
+      letter-spacing: 0.06em;
+      margin-left: 2px;
     }
   }
 }

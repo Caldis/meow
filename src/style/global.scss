@@ -1,13 +1,17 @@
-$accentColor: #0FA1FF;
-$accentColorLighter: #49acff;
-$accentColorDarken: #098fff;
+// Warm editorial palette
+$bgColor: #141210;
+$bgColorWarm: #1c1816;
+$surfaceColor: #faf7f2;
+$surfaceDimColor: #eee9e2;
+$textLight: #ece5db;
+$textMuted: #8a7e72;
+$textOnSurface: #5c5347;
+$shadowColor: rgba(10, 8, 6, 0.4);
+$accentWarm: #c49a6c;
 
-$primaryColor: #ffc100;
-$primaryColorLighter: #ffd35d;
-$primaryColorDarken: #bb8c00;
+// Legacy alias
+$darkColor: #141210;
 
-$secondaryColor: #ff4747;
-$secondaryColorLighter: #ff7b7b;
-$secondaryColorDarken: #a33434;
-
-$darkColor: #1c1c1c;
+// Typography
+$fontDisplay: 'Instrument Serif', 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', serif;
+$fontBody: 'DM Sans', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;

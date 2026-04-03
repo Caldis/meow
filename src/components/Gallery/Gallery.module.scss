@@ -3,12 +3,103 @@
 .gallery {
   flex-grow: 1;
   position: relative;
+  height: 100vh;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 140px;
+    background: linear-gradient(
+      to bottom,
+      rgba(20, 18, 16, 0.92) 0%,
+      rgba(20, 18, 16, 0.5) 55%,
+      transparent 100%
+    );
+    z-index: 99;
+    pointer-events: none;
+  }
 }
 
-.tab {
-  position: absolute;
-  top: 15px;
+.scroller {
+  position: relative;
+  will-change: transform;
+}
+
+.header {
+  position: fixed;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10000000000;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: clamp(18px, 3.5vh, 32px);
+  gap: 10px;
+}
+
+.title {
+  font-family: $fontDisplay;
+  font-size: clamp(16px, 2.5vw, 22px);
+  font-weight: 400;
+  letter-spacing: 0.35em;
+  color: $textLight;
+  white-space: nowrap;
+  opacity: 0.85;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: opacity 0.3s ease-out;
+  &:hover { opacity: 1; }
+}
+
+.overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 150;
+  background-color: rgba(14, 12, 10, 0);
+  transition: background-color 0.5s ease-out;
+  pointer-events: none;
+
+  &.overlayVisible {
+    background-color: rgba(14, 12, 10, 0.88);
+    pointer-events: auto;
+    cursor: zoom-out;
+  }
+}
+
+.scrollbar {
+  position: fixed;
+  top: 0;
+  right: 2px;
+  width: 12px;
+  height: 100vh;
+  z-index: 101;
+  cursor: pointer;
+}
+
+.scrollThumb {
+  position: absolute;
+  top: 0;
+  right: 2px;
+  width: 3px;
+  border-radius: 2px;
+  background-color: rgba(236, 229, 219, 0.15);
+  will-change: transform;
+  transition: width 0.2s ease-out, background-color 0.2s ease-out, right 0.2s ease-out;
+  cursor: grab;
+
+  &:hover, &:active {
+    width: 5px;
+    right: 1px;
+    background-color: rgba(236, 229, 219, 0.35);
+  }
+  &:active {
+    background-color: rgba(236, 229, 219, 0.5);
+    cursor: grabbing;
+  }
 }

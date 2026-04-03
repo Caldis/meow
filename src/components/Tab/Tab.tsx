@@ -8,11 +8,13 @@ export default function Tab ({
   value,
   onChange,
   items,
+  labels,
 }: {
   className?: string;
   value: TabItemIdentifier;
   onChange?: (value?: TabItemIdentifier) => void;
   items: TabItemIdentifier[];
+  labels?: Record<string | number, string>;
 }) {
 
   // Style control
@@ -26,12 +28,12 @@ export default function Tab ({
     <div className={classNames(styles.container, className && { [className]: true })} ref={containerRef}>
 
       {/*Pill*/}
-      <div className={styles.pill} style={{
-        left: (activeItemRect?.left ?? 0) - (containerRect?.left ?? 0),
-        top: (activeItemRect?.top ?? 0) - (containerRect?.top ?? 0),
-        width: (activeItemRect?.width ?? 1) - 2,
-        height: (activeItemRect?.height ?? 1) - 2,
-      }}/>
+      {containerRect && activeItemRect && (
+        <div className={styles.pill} style={{
+          left: activeItemRect.left - containerRect.left + activeItemRect.width * 0.18,
+          width: activeItemRect.width * 0.64,
+        }}/>
+      )}
 
       {/*Hot Spot Masks*/}
       {
@@ -41,7 +43,7 @@ export default function Tab ({
             className={classNames(styles.item, { [styles.itemActive]: value === item })}
             onClick={() => onChange?.(item)}
             ref={r => itemsRef.current[index] = r}
-          />
+          >{labels?.[item] ?? item}</div>
         )
       }
 

@@ -15,6 +15,38 @@ export enum GalleryViewMode {
   stage,
 }
 
+export const VIEW_MODE_LABELS: Record<number, string> = {
+  [GalleryViewMode.random]: '随心',
+  [GalleryViewMode.sequential]: '时光',
+  [GalleryViewMode.stage]: '拼图',
+}
+
+// i18n
+const TITLES: Record<string, string> = {
+  zh: '大咪成长史',
+  en: "Meow's Story",
+  ja: 'ニャンの成長記',
+  ko: '냥이 성장기',
+  fr: "L'histoire de Miaou",
+  de: 'Miezis Geschichte',
+  es: 'La historia de Miau',
+  pt: 'A história do Miau',
+  it: 'La storia di Miao',
+  ru: 'История Мяу',
+  ar: 'قصة مياو',
+  hi: 'म्याऊ की कहानी',
+  th: 'เรื่องราวของเหมียว',
+  vi: 'Câu chuyện của Meo',
+  tr: "Miyav'ın Hikâyesi",
+  nl: 'Het verhaal van Miauw',
+}
+
+export const getLocalizedTitle = (): string => {
+  const lang = (navigator.language || 'en').toLowerCase()
+  const primary = lang.split('-')[0]
+  return TITLES[primary] || TITLES[lang] || TITLES.en
+}
+
 // RANDOM
 export const RANDOM_MIN_WIDTH = 200
 export const RANDOM_MAX_WIDTH = 400

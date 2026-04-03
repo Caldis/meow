@@ -69,19 +69,21 @@ select {
   font: inherit;
 }
 
-/* Remove all animations and transitions for people that prefer not to see them */
+/* Respect reduced motion preference for decorative animations only */
 @media (prefers-reduced-motion: reduce) {
   * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
 }
 
 /* Custom */
+html, body {
+  overflow: hidden;
+  height: 100%;
+}
 body {
-  background-color: $darkColor;
+  background: radial-gradient(ellipse at 50% 0%, $bgColorWarm 0%, $bgColor 70%) fixed;
+  background-color: $bgColor;
 }
 button {
   user-select: none;
