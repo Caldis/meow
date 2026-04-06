@@ -120,7 +120,7 @@ const useBlurAnim = (visble: boolean, angle: number = 0) => {
     if (visble) {
       return {
         opacity: 1,
-        filter: 'blur(0px)',
+        filter: 'none',
         transform: `scale(1) rotate(${angle}deg)`,
       }
     }

@@ -22,7 +22,7 @@ let hoverStartedAt = 0
 /*
  * Get Style
  */
-export const transform = (degX: number, degY: number) => `perspective(512px) translate3d(0, 0, 0) rotateX(${-degY}deg) rotateY(${degX}deg)`
+export const transform = (degX: number, degY: number) => `perspective(512px) rotateX(${-degY}deg) rotateY(${degX}deg)`
 
 const ROTATION_LERP = 0.18
 const ROTATION_EPSILON = 0.02

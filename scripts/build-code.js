@@ -4,6 +4,18 @@ const { execSync } = require('child_process')
 
 // 获取项目根目录路径(当前脚本在scripts目录下)
 const rootDir = path.join(__dirname, '..')
+const buildPath = path.join(rootDir, 'build')
+const docsPath = path.join(rootDir, 'docs')
+const docsGeneratedEntries = [
+  'asset-manifest.json',
+  'favicon.ico',
+  'index.html',
+  'logo192.png',
+  'logo512.png',
+  'manifest.json',
+  'robots.txt',
+  'static'
+]
 
 // 执行 react-scripts build
 console.log('开始构建...')
@@ -18,20 +30,29 @@ try {
 }
 
 // 确保 docs 目录存在
-const docsPath = path.join(rootDir, 'docs')
 if (!fs.existsSync(docsPath)) {
-  fs.mkdirSync(docsPath)
+  fs.mkdirSync(docsPath, { recursive: true })
 }
 
-// 复制 build 目录内容到 docs
-const buildPath = path.join(rootDir, 'build')
+function cleanDocsOutput(destPath) {
+  for (const entry of docsGeneratedEntries) {
+    const entryPath = path.join(destPath, entry)
+
+    if (!fs.existsSync(entryPath)) {
+      continue
+    }
+
+    fs.rmSync(entryPath, { recursive: true, force: true })
+  }
+}
+
 console.log('\n正在移动文件到 docs 目录...')
 
 try {
   // 递归复制函数
   function copyDir(src, dest) {
     if (!fs.existsSync(dest)) {
-      fs.mkdirSync(dest)
+      fs.mkdirSync(dest, { recursive: true })
     }
 
     const files = fs.readdirSync(src)
@@ -49,10 +70,11 @@ try {
     }
   }
 
+  cleanDocsOutput(docsPath)
   copyDir(buildPath, docsPath)
 
   // 删除 build 目录
-  fs.rmSync(buildPath, { recursive: true })
+  fs.rmSync(buildPath, { recursive: true, force: true })
 
   console.log('完成! 构建文件已移动到 docs 目录')
 } catch (err) {
