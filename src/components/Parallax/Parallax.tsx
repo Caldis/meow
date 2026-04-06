@@ -11,9 +11,10 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   style?: CSSProperties
   innerClassName?: string
   innerStyle?: CSSProperties
+  rectSourceRef?: React.RefObject<HTMLElement>
 }
 
-const Parallax = ({ children, className, style, innerClassName, innerStyle }: Props) => {
+const Parallax = ({ children, className, style, innerClassName, innerStyle, rectSourceRef }: Props) => {
 
   const outerRef = useRef<HTMLDivElement>(null)
   const innerRef = useRef<HTMLDivElement>(null)
@@ -21,7 +22,10 @@ const Parallax = ({ children, className, style, innerClassName, innerStyle }: Pr
   useEffect(() => {
     const outer = outerRef.current
     const inner = innerRef.current!
-    const handleUpdateTracingTarget = () => updateTarget(inner, { withRectCenter: true })
+    const handleUpdateTracingTarget = () => updateTarget(inner, {
+      withRectCenter: true,
+      rectSource: rectSourceRef?.current || inner,
+    })
     const handleCancelTracingTarget = () => resetTarget()
     outer?.addEventListener('mouseover', handleUpdateTracingTarget)
     outer?.addEventListener('mouseleave', handleCancelTracingTarget)
@@ -29,7 +33,7 @@ const Parallax = ({ children, className, style, innerClassName, innerStyle }: Pr
       outer?.removeEventListener('mouseover', handleUpdateTracingTarget)
       outer?.removeEventListener('mouseleave', handleCancelTracingTarget)
     }
-  })
+  }, [rectSourceRef])
 
   return (
     <div className={`${styles.parallax}${className ? ` ${className}` : ''}`} ref={outerRef} style={{

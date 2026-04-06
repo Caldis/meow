@@ -1,5 +1,30 @@
-.picture {
+.dragLayer {
   position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+
+  &.dragLayerActive {
+    touch-action: none;
+    cursor: grab;
+  }
+
+  &.dragLayerDragging {
+    cursor: grabbing;
+
+    .imageWrapper {
+      box-shadow:
+        0 14px 40px rgba(10, 8, 6, 0.36),
+        0 24px 72px rgba(10, 8, 6, 0.24);
+      transform: rotate(-0.3deg) scale(1.015);
+    }
+  }
+}
+
+.picture {
+  position: relative;
+  display: block;
   will-change: transform, opacity, filter;
   transition: all 3.0s cubic-bezier(0.15, 0.75, 0.05, 1.00);
 
@@ -14,11 +39,29 @@
   }
 
   .imageWrapper {
+    position: relative;
     background-color: #faf7f2;
     border-radius: 6px;
     box-shadow:
       0 2px 8px rgba(10, 8, 6, 0.25),
       0 8px 24px rgba(10, 8, 6, 0.15);
+    transition:
+      box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+
+    &.imageWrapperShuffle {
+      animation: shuffleFront 0.24s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .mediaFrame {
+      position: relative;
+      overflow: hidden;
+      border-radius: 4px;
+      isolation: isolate;
+      background:
+        radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 50%), rgba(255, 250, 245, 0.18), transparent 56%),
+        linear-gradient(180deg, rgba(255, 251, 247, 0.18), rgba(231, 223, 214, 0.02));
+    }
 
     .image {
       user-select: none;
@@ -27,6 +70,8 @@
       background-color: #eee9e2;
       will-change: width, height;
       transition: all 3.0s cubic-bezier(0.15, 0.75, 0.05, 1.00);
+      pointer-events: none;
+      display: block;
     }
 
     .label {
@@ -36,6 +81,87 @@
       color: #8a7e72;
       letter-spacing: 0.06em;
       margin-left: 2px;
+      user-select: none;
     }
+
+    .specular,
+    .foil {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+      transition: opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .specular {
+      opacity: var(--specular-opacity, 0);
+      background:
+        radial-gradient(
+          circle at var(--glare-x, 50%) var(--glare-y, 50%),
+          rgba(255, 251, 247, 0.72) 0,
+          rgba(255, 232, 201, 0.3) 16%,
+          rgba(255, 255, 255, 0.08) 34%,
+          transparent 58%
+        );
+      mix-blend-mode: screen;
+    }
+
+    .foil {
+      opacity: var(--foil-opacity, 0);
+      background:
+        linear-gradient(
+          112deg,
+          transparent 18%,
+          rgba(255, 219, 112, 0.22) 28%,
+          rgba(132, 210, 255, 0.18) 41%,
+          rgba(255, 112, 199, 0.16) 53%,
+          rgba(112, 255, 162, 0.18) 67%,
+          transparent 82%
+        );
+      background-size: 200% 100%;
+      background-position: calc(-120% + var(--glare-shift, 0px)) 0;
+      mix-blend-mode: screen;
+
+      &.foilActive {
+        animation: holoShimmer 1.6s cubic-bezier(0.22, 1, 0.36, 1) 1 forwards;
+      }
+    }
+  }
+}
+
+@keyframes holoShimmer {
+  0% { background-position: calc(-120% + var(--glare-shift, 0px)) 0; }
+  100% { background-position: calc(140% + var(--glare-shift, 0px)) 0; }
+}
+
+@keyframes shuffleFront {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  38% {
+    transform: translate3d(-16px, 2px, 0) rotate(-1.4deg) scale(0.985);
+  }
+  72% {
+    transform: translate3d(6px, -1px, 0) rotate(0.8deg) scale(1.01);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dragLayer,
+  .dragLayer.dragLayerDragging,
+  .picture .imageWrapper,
+  .picture .image {
+    transition: none;
+  }
+
+  .picture .foil {
+    animation: none;
+  }
+
+  .picture .imageWrapper.imageWrapperShuffle {
+    animation: none;
   }
 }

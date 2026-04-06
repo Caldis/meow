@@ -8,10 +8,13 @@ import Picture from '../Picture'
 // Utils
 import { AppContext } from 'App.context'
 import { GALLERY_DATA } from 'App.constant'
+import { DEFAULT_PICTURE_HIGHLIGHT_TUNING, PictureHighlightTuning } from 'components/Picture/Picture.constant'
 import { TabItemIdentifier } from 'components/Tab/Tab.constant'
 import { GalleryViewMode, SAFE_LABEL_HEIGHT, SAFE_PADDING, SEQUENTIAL_BREAK_POINT, STAGE_BREAK_POINT, VIEW_MODE_LABELS, getLocalizedTitle } from 'components/Gallery/Gallery.constant'
 import { getColumnSlot, getRandomRect, getSequentialRect, getStageRect } from './Gallery.utils'
 import { useCustomScroll } from './Gallery.hook'
+
+const IS_DEV = process.env.NODE_ENV === 'development'
 
 const Gallery = () => {
 
@@ -20,11 +23,26 @@ const Gallery = () => {
 
   // Data
   const [data, setData] = useState<{ pic: Pic; rect: Rect }[]>([])
+  const [stackIndexes, setStackIndexes] = useState<Record<string, number>>({})
+  const [shuffleTokens, setShuffleTokens] = useState<Record<string, number>>({})
+  const stackIndexesRef = useRef<Record<string, number>>({})
+  const frontCounterRef = useRef(0)
 
   // View Mode
   const [viewMode, setViewMode] = useState<GalleryViewMode>(GalleryViewMode.sequential)
   const handleModeChange = useCallback((selection?: TabItemIdentifier) => {
     setViewMode(selection as GalleryViewMode)
+  }, [])
+
+  const [highlightTuning, setHighlightTuning] = useState<PictureHighlightTuning>(DEFAULT_PICTURE_HIGHLIGHT_TUNING)
+  const updateHighlightTuning = useCallback((key: keyof PictureHighlightTuning, value: number) => {
+    setHighlightTuning((current) => ({
+      ...current,
+      [key]: value,
+    }))
+  }, [])
+  const resetHighlightTuning = useCallback(() => {
+    setHighlightTuning(DEFAULT_PICTURE_HIGHLIGHT_TUNING)
   }, [])
 
   // Fill
@@ -59,6 +77,17 @@ const Gallery = () => {
       }
     }
   }, [isInitialized, screenSize, viewMode])
+
+  useEffect(() => {
+    const nextIndexes = data.reduce((acc, item, index) => {
+      acc[item.pic.path] = index + 1
+      return acc
+    }, {} as Record<string, number>)
+    stackIndexesRef.current = nextIndexes
+    frontCounterRef.current = data.length
+    setStackIndexes(nextIndexes)
+    setShuffleTokens({})
+  }, [data])
 
   // Custom scroll
   const scrollerRef = useRef<HTMLDivElement>(null)
@@ -104,6 +133,33 @@ const Gallery = () => {
     scrollTo((e.clientY / screenSize.height) * maxScroll)
   }, [scrollTo, maxScroll, screenSize.height])
 
+  const handleRequestFront = useCallback((index: number, reason: 'click' | 'drag') => {
+    if (viewMode !== GalleryViewMode.random) return false
+    const target = data[index]
+    if (!target) return false
+    const path = target.pic.path
+    const current = stackIndexesRef.current[path] ?? 0
+    const currentFront = frontCounterRef.current
+    if (current >= currentFront) return false
+
+    const nextFront = currentFront + 1
+    frontCounterRef.current = nextFront
+    const nextIndexes = {
+      ...stackIndexesRef.current,
+      [path]: nextFront,
+    }
+    stackIndexesRef.current = nextIndexes
+    setStackIndexes(nextIndexes)
+
+    if (reason === 'click') {
+      setShuffleTokens((prev) => ({
+        ...prev,
+        [path]: (prev[path] ?? 0) + 1,
+      }))
+    }
+    return true
+  }, [data, viewMode])
+
   return (
     <main className={styles.gallery}>
 
@@ -125,6 +181,11 @@ const Gallery = () => {
               index={index}
               pic={item.pic}
               rect={item.rect}
+              draggable={viewMode === GalleryViewMode.random}
+              highlightTuning={highlightTuning}
+              stackIndex={stackIndexes[item.pic.path] ?? index + 1}
+              shuffleToken={shuffleTokens[item.pic.path] ?? 0}
+              onRequestFront={(reason) => handleRequestFront(index, reason)}
               lightbox={index === lightboxIndex}
               lightboxOpen={lightboxOpen}
               onExpand={handleExpand}
@@ -145,6 +206,54 @@ const Gallery = () => {
         <div className={styles.scrollbar} onClick={handleTrackClick}>
           <div className={styles.scrollThumb} ref={thumbRef}/>
         </div>
+      )}
+
+      {IS_DEV && (
+        <aside className={styles.debugPanel}>
+          <div className={styles.debugHeader}>
+            <strong className={styles.debugTitle}>Highlight Debug</strong>
+            <button className={styles.debugReset} type="button" onClick={resetHighlightTuning}>重置</button>
+          </div>
+
+          <label className={styles.debugControl}>
+            <span>亮斑强度</span>
+            <strong>{highlightTuning.specularGain.toFixed(2)}</strong>
+            <input
+              type="range"
+              min="0"
+              max="2.5"
+              step="0.05"
+              value={highlightTuning.specularGain}
+              onChange={(e) => updateHighlightTuning('specularGain', Number(e.target.value))}
+            />
+          </label>
+
+          <label className={styles.debugControl}>
+            <span>彩光强度</span>
+            <strong>{highlightTuning.foilGain.toFixed(2)}</strong>
+            <input
+              type="range"
+              min="0"
+              max="2.5"
+              step="0.05"
+              value={highlightTuning.foilGain}
+              onChange={(e) => updateHighlightTuning('foilGain', Number(e.target.value))}
+            />
+          </label>
+
+          <label className={styles.debugControl}>
+            <span>流光位移</span>
+            <strong>{highlightTuning.shiftGain.toFixed(2)}</strong>
+            <input
+              type="range"
+              min="0"
+              max="2.5"
+              step="0.05"
+              value={highlightTuning.shiftGain}
+              onChange={(e) => updateHighlightTuning('shiftGain', Number(e.target.value))}
+            />
+          </label>
+        </aside>
       )}
 
     </main>
