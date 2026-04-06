@@ -8,7 +8,12 @@ import Picture from '../Picture'
 // Utils
 import { AppContext } from 'App.context'
 import { GALLERY_DATA } from 'App.constant'
-import { DEFAULT_PICTURE_HIGHLIGHT_TUNING, PictureHighlightTuning } from 'components/Picture/Picture.constant'
+import {
+  DEFAULT_PICTURE_DRAG_TUNING,
+  DEFAULT_PICTURE_HIGHLIGHT_TUNING,
+  PictureDragTuning,
+  PictureHighlightTuning
+} from 'components/Picture/Picture.constant'
 import { TabItemIdentifier } from 'components/Tab/Tab.constant'
 import { GalleryViewMode, SAFE_LABEL_HEIGHT, SAFE_PADDING, SEQUENTIAL_BREAK_POINT, STAGE_BREAK_POINT, VIEW_MODE_LABELS, getLocalizedTitle } from 'components/Gallery/Gallery.constant'
 import { getColumnSlot, getRandomRect, getSequentialRect, getStageRect } from './Gallery.utils'
@@ -35,14 +40,22 @@ const Gallery = () => {
   }, [])
 
   const [highlightTuning, setHighlightTuning] = useState<PictureHighlightTuning>(DEFAULT_PICTURE_HIGHLIGHT_TUNING)
+  const [dragTuning, setDragTuning] = useState<PictureDragTuning>(DEFAULT_PICTURE_DRAG_TUNING)
   const updateHighlightTuning = useCallback((key: keyof PictureHighlightTuning, value: number) => {
     setHighlightTuning((current) => ({
       ...current,
       [key]: value,
     }))
   }, [])
-  const resetHighlightTuning = useCallback(() => {
+  const updateDragTuning = useCallback((key: keyof PictureDragTuning, value: number) => {
+    setDragTuning((current) => ({
+      ...current,
+      [key]: value,
+    }))
+  }, [])
+  const resetDebugTuning = useCallback(() => {
     setHighlightTuning(DEFAULT_PICTURE_HIGHLIGHT_TUNING)
+    setDragTuning(DEFAULT_PICTURE_DRAG_TUNING)
   }, [])
 
   // Fill
@@ -183,6 +196,7 @@ const Gallery = () => {
               rect={item.rect}
               draggable={viewMode === GalleryViewMode.random}
               highlightTuning={highlightTuning}
+              dragTuning={dragTuning}
               stackIndex={stackIndexes[item.pic.path] ?? index + 1}
               shuffleToken={shuffleTokens[item.pic.path] ?? 0}
               onRequestFront={(reason) => handleRequestFront(index, reason)}
@@ -211,48 +225,134 @@ const Gallery = () => {
       {IS_DEV && (
         <aside className={styles.debugPanel}>
           <div className={styles.debugHeader}>
-            <strong className={styles.debugTitle}>Highlight Debug</strong>
-            <button className={styles.debugReset} type="button" onClick={resetHighlightTuning}>重置</button>
+            <strong className={styles.debugTitle}>Card Debug</strong>
+            <button className={styles.debugReset} type="button" onClick={resetDebugTuning}>重置</button>
           </div>
 
-          <label className={styles.debugControl}>
-            <span>亮斑强度</span>
-            <strong>{highlightTuning.specularGain.toFixed(2)}</strong>
-            <input
-              type="range"
-              min="0"
-              max="2.5"
-              step="0.05"
-              value={highlightTuning.specularGain}
-              onChange={(e) => updateHighlightTuning('specularGain', Number(e.target.value))}
-            />
-          </label>
+          <div className={styles.debugSection}>
+            <strong className={styles.debugSectionTitle}>高光</strong>
 
-          <label className={styles.debugControl}>
-            <span>彩光强度</span>
-            <strong>{highlightTuning.foilGain.toFixed(2)}</strong>
-            <input
-              type="range"
-              min="0"
-              max="2.5"
-              step="0.05"
-              value={highlightTuning.foilGain}
-              onChange={(e) => updateHighlightTuning('foilGain', Number(e.target.value))}
-            />
-          </label>
+            <label className={styles.debugControl}>
+              <span>亮斑强度</span>
+              <strong>{highlightTuning.specularGain.toFixed(2)}</strong>
+              <input
+                type="range"
+                min="0"
+                max="2.5"
+                step="0.05"
+                value={highlightTuning.specularGain}
+                onChange={(e) => updateHighlightTuning('specularGain', Number(e.target.value))}
+              />
+            </label>
 
-          <label className={styles.debugControl}>
-            <span>流光位移</span>
-            <strong>{highlightTuning.shiftGain.toFixed(2)}</strong>
-            <input
-              type="range"
-              min="0"
-              max="2.5"
-              step="0.05"
-              value={highlightTuning.shiftGain}
-              onChange={(e) => updateHighlightTuning('shiftGain', Number(e.target.value))}
-            />
-          </label>
+            <label className={styles.debugControl}>
+              <span>彩光强度</span>
+              <strong>{highlightTuning.foilGain.toFixed(2)}</strong>
+              <input
+                type="range"
+                min="0"
+                max="2.5"
+                step="0.05"
+                value={highlightTuning.foilGain}
+                onChange={(e) => updateHighlightTuning('foilGain', Number(e.target.value))}
+              />
+            </label>
+
+            <label className={styles.debugControl}>
+              <span>流光位移</span>
+              <strong>{highlightTuning.shiftGain.toFixed(2)}</strong>
+              <input
+                type="range"
+                min="0"
+                max="2.5"
+                step="0.05"
+                value={highlightTuning.shiftGain}
+                onChange={(e) => updateHighlightTuning('shiftGain', Number(e.target.value))}
+              />
+            </label>
+          </div>
+
+          <div className={styles.debugSection}>
+            <strong className={styles.debugSectionTitle}>拖拽姿态</strong>
+
+            <label className={styles.debugControl}>
+              <span>位移滞后</span>
+              <strong>{dragTuning.lagGain.toFixed(2)}</strong>
+              <input
+                type="range"
+                min="0"
+                max="3"
+                step="0.05"
+                value={dragTuning.lagGain}
+                onChange={(e) => updateDragTuning('lagGain', Number(e.target.value))}
+              />
+            </label>
+
+            <label className={styles.debugControl}>
+              <span>倾斜强度</span>
+              <strong>{dragTuning.tiltGain.toFixed(2)}</strong>
+              <input
+                type="range"
+                min="0"
+                max="3"
+                step="0.05"
+                value={dragTuning.tiltGain}
+                onChange={(e) => updateDragTuning('tiltGain', Number(e.target.value))}
+              />
+            </label>
+
+            <label className={styles.debugControl}>
+              <span>扭转强度</span>
+              <strong>{dragTuning.spinGain.toFixed(2)}</strong>
+              <input
+                type="range"
+                min="0"
+                max="3.5"
+                step="0.05"
+                value={dragTuning.spinGain}
+                onChange={(e) => updateDragTuning('spinGain', Number(e.target.value))}
+              />
+            </label>
+
+            <label className={styles.debugControl}>
+              <span>加速度响应</span>
+              <strong>{dragTuning.accelGain.toFixed(2)}</strong>
+              <input
+                type="range"
+                min="0"
+                max="3"
+                step="0.05"
+                value={dragTuning.accelGain}
+                onChange={(e) => updateDragTuning('accelGain', Number(e.target.value))}
+              />
+            </label>
+
+            <label className={styles.debugControl}>
+              <span>抬起感</span>
+              <strong>{dragTuning.liftGain.toFixed(2)}</strong>
+              <input
+                type="range"
+                min="0"
+                max="2.5"
+                step="0.05"
+                value={dragTuning.liftGain}
+                onChange={(e) => updateDragTuning('liftGain', Number(e.target.value))}
+              />
+            </label>
+
+            <label className={styles.debugControl}>
+              <span>抓取偏心</span>
+              <strong>{dragTuning.gripGain.toFixed(2)}</strong>
+              <input
+                type="range"
+                min="0"
+                max="2.5"
+                step="0.05"
+                value={dragTuning.gripGain}
+                onChange={(e) => updateDragTuning('gripGain', Number(e.target.value))}
+              />
+            </label>
+          </div>
         </aside>
       )}
 

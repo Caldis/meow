@@ -7,7 +7,9 @@ import Parallax from '../Parallax'
 import { AppContext } from 'App.context'
 import { PARALLAX_INNER_PADDING, updateTargetRectCenter } from 'components/Parallax/Parallax.constant'
 import {
+  DEFAULT_PICTURE_DRAG_TUNING,
   DEFAULT_PICTURE_HIGHLIGHT_TUNING,
+  PictureDragTuning,
   PICTURE_INNER_PADDING,
   PictureHighlightTuning,
   PICTURE_LABEL_LINE_HEIGHT,
@@ -32,6 +34,8 @@ const DRAG_LAG_MAX = 10
 const DRAG_TILT_MAX = 2.4
 const DRAG_SPIN_MAX = 5.4
 const DRAG_ORIGIN_RANGE = 24
+const DRAG_LIFT_BASE = 0.012
+const DRAG_LIFT_SPEED_FACTOR = 0.008
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 
@@ -58,20 +62,55 @@ const DRAG_POSE_DEFAULT: DragPose = {
 }
 
 // Keep the card attached to the pointer at the outer layer, and let the inner layer lag/torque a bit.
-const createDragPose = (gripX: number, gripY: number, velocityX: number, velocityY: number, accelX: number, accelY: number): DragPose => {
+const createDragPose = (
+  gripX: number,
+  gripY: number,
+  velocityX: number,
+  velocityY: number,
+  accelX: number,
+  accelY: number,
+  dragTuning: PictureDragTuning
+): DragPose => {
   const speed = Math.hypot(velocityX, velocityY)
   const torque = gripX * velocityY - gripY * velocityX
   const torqueAccel = gripX * accelY - gripY * accelX
+  const lagGain = Math.max(dragTuning.lagGain, 0)
+  const tiltGain = Math.max(dragTuning.tiltGain, 0)
+  const spinGain = Math.max(dragTuning.spinGain, 0)
+  const accelGain = Math.max(dragTuning.accelGain, 0)
+  const liftGain = Math.max(dragTuning.liftGain, 0)
+  const gripGain = Math.max(dragTuning.gripGain, 0)
+  const lift = (DRAG_LIFT_BASE + clamp(speed * DRAG_LIFT_SPEED_FACTOR, 0, DRAG_LIFT_BASE)) * liftGain
 
   return {
-    shiftX: clamp(-(velocityX * DRAG_LAG_FACTOR + accelX * DRAG_ACCEL_LAG_FACTOR), -DRAG_LAG_MAX, DRAG_LAG_MAX),
-    shiftY: clamp(-(velocityY * DRAG_LAG_FACTOR + accelY * DRAG_ACCEL_LAG_FACTOR), -DRAG_LAG_MAX, DRAG_LAG_MAX),
-    rotateX: clamp(-(velocityY * DRAG_TILT_FACTOR + accelY * DRAG_ACCEL_TILT_FACTOR), -DRAG_TILT_MAX, DRAG_TILT_MAX),
-    rotateY: clamp(velocityX * DRAG_TILT_FACTOR + accelX * DRAG_ACCEL_TILT_FACTOR, -DRAG_TILT_MAX, DRAG_TILT_MAX),
-    rotateZ: clamp(torque * DRAG_TORQUE_FACTOR + torqueAccel * DRAG_ACCEL_TORQUE_FACTOR, -DRAG_SPIN_MAX, DRAG_SPIN_MAX),
-    scale: 1.012 + clamp(speed * 0.008, 0, 0.012),
-    originX: clamp(50 + gripX * DRAG_ORIGIN_RANGE, 26, 74),
-    originY: clamp(50 + gripY * DRAG_ORIGIN_RANGE, 26, 74),
+    shiftX: clamp(
+      -(velocityX * DRAG_LAG_FACTOR * lagGain + accelX * DRAG_ACCEL_LAG_FACTOR * lagGain * accelGain),
+      -DRAG_LAG_MAX * lagGain,
+      DRAG_LAG_MAX * lagGain,
+    ),
+    shiftY: clamp(
+      -(velocityY * DRAG_LAG_FACTOR * lagGain + accelY * DRAG_ACCEL_LAG_FACTOR * lagGain * accelGain),
+      -DRAG_LAG_MAX * lagGain,
+      DRAG_LAG_MAX * lagGain,
+    ),
+    rotateX: clamp(
+      -(velocityY * DRAG_TILT_FACTOR * tiltGain + accelY * DRAG_ACCEL_TILT_FACTOR * tiltGain * accelGain),
+      -DRAG_TILT_MAX * tiltGain,
+      DRAG_TILT_MAX * tiltGain,
+    ),
+    rotateY: clamp(
+      velocityX * DRAG_TILT_FACTOR * tiltGain + accelX * DRAG_ACCEL_TILT_FACTOR * tiltGain * accelGain,
+      -DRAG_TILT_MAX * tiltGain,
+      DRAG_TILT_MAX * tiltGain,
+    ),
+    rotateZ: clamp(
+      torque * DRAG_TORQUE_FACTOR * spinGain + torqueAccel * DRAG_ACCEL_TORQUE_FACTOR * spinGain * accelGain,
+      -DRAG_SPIN_MAX * spinGain,
+      DRAG_SPIN_MAX * spinGain,
+    ),
+    scale: 1 + lift,
+    originX: clamp(50 + gripX * DRAG_ORIGIN_RANGE * gripGain, 18, 82),
+    originY: clamp(50 + gripY * DRAG_ORIGIN_RANGE * gripGain, 18, 82),
   }
 }
 
@@ -99,6 +138,7 @@ interface Props {
   rect: Rect
   draggable?: boolean
   highlightTuning?: PictureHighlightTuning
+  dragTuning?: PictureDragTuning
   stackIndex?: number
   shuffleToken?: number
   onRequestFront?: (reason: 'click' | 'drag') => boolean
@@ -115,6 +155,7 @@ const Picture = React.memo(({
   rect,
   draggable = false,
   highlightTuning = DEFAULT_PICTURE_HIGHLIGHT_TUNING,
+  dragTuning = DEFAULT_PICTURE_DRAG_TUNING,
   stackIndex,
   shuffleToken = 0,
   onRequestFront,
@@ -328,8 +369,8 @@ const Picture = React.memo(({
     state.accelY = nextAccelY
 
     setDragOffset(nextOffset)
-    setDragPose(createDragPose(state.gripX, state.gripY, nextVelocityX, nextVelocityY, nextAccelX, nextAccelY))
-  }, [allowDrag, dragBounds.maxX, dragBounds.maxY, dragBounds.minX, dragBounds.minY, onRequestFront, updateGlare])
+    setDragPose(createDragPose(state.gripX, state.gripY, nextVelocityX, nextVelocityY, nextAccelX, nextAccelY, dragTuning))
+  }, [allowDrag, dragBounds.maxX, dragBounds.maxY, dragBounds.minX, dragBounds.minY, dragTuning, onRequestFront, updateGlare])
 
   const releasePointer = useCallback((pointerId: number, target: HTMLDivElement) => {
     if (target.hasPointerCapture(pointerId)) {

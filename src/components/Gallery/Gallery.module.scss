@@ -110,6 +110,7 @@
   bottom: clamp(14px, 2vw, 24px);
   z-index: 160;
   width: min(280px, calc(100vw - 28px));
+  max-height: calc(100vh - 28px);
   padding: 14px 14px 12px;
   border: 1px solid rgba(236, 229, 219, 0.12);
   border-radius: 14px;
@@ -118,6 +119,7 @@
     0 10px 24px rgba(0, 0, 0, 0.22),
     0 20px 54px rgba(0, 0, 0, 0.18);
   backdrop-filter: blur(12px);
+  overflow: auto;
 }
 
 .debugHeader {
@@ -171,4 +173,22 @@
     accent-color: $accentWarm;
     cursor: ew-resize;
   }
+}
+
+.debugSection {
+  & + & {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(236, 229, 219, 0.08);
+  }
+}
+
+.debugSectionTitle {
+  display: block;
+  margin-bottom: 8px;
+  font-family: $fontBody;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: rgba(196, 154, 108, 0.92);
 }
