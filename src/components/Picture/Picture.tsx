@@ -21,8 +21,59 @@ const LABEL_H = PICTURE_LABEL_LINE_HEIGHT + PICTURE_LABEL_MARGIN_TOP + PICTURE_L
 const DRAG_THRESHOLD = 6
 const GLARE_DEFAULT = { x: 50, y: 50 }
 const FRONT_OPEN_DELAY = 80
+const DRAG_VELOCITY_BLEND = 0.24
+const DRAG_LAG_FACTOR = 18
+const DRAG_ACCEL_LAG_FACTOR = 120
+const DRAG_TILT_FACTOR = 2.2
+const DRAG_ACCEL_TILT_FACTOR = 18
+const DRAG_TORQUE_FACTOR = 5.4
+const DRAG_ACCEL_TORQUE_FACTOR = 34
+const DRAG_LAG_MAX = 10
+const DRAG_TILT_MAX = 2.4
+const DRAG_SPIN_MAX = 5.4
+const DRAG_ORIGIN_RANGE = 24
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
+
+interface DragPose {
+  shiftX: number
+  shiftY: number
+  rotateX: number
+  rotateY: number
+  rotateZ: number
+  scale: number
+  originX: number
+  originY: number
+}
+
+const DRAG_POSE_DEFAULT: DragPose = {
+  shiftX: 0,
+  shiftY: 0,
+  rotateX: 0,
+  rotateY: 0,
+  rotateZ: 0,
+  scale: 1,
+  originX: 50,
+  originY: 50,
+}
+
+// Keep the card attached to the pointer at the outer layer, and let the inner layer lag/torque a bit.
+const createDragPose = (gripX: number, gripY: number, velocityX: number, velocityY: number, accelX: number, accelY: number): DragPose => {
+  const speed = Math.hypot(velocityX, velocityY)
+  const torque = gripX * velocityY - gripY * velocityX
+  const torqueAccel = gripX * accelY - gripY * accelX
+
+  return {
+    shiftX: clamp(-(velocityX * DRAG_LAG_FACTOR + accelX * DRAG_ACCEL_LAG_FACTOR), -DRAG_LAG_MAX, DRAG_LAG_MAX),
+    shiftY: clamp(-(velocityY * DRAG_LAG_FACTOR + accelY * DRAG_ACCEL_LAG_FACTOR), -DRAG_LAG_MAX, DRAG_LAG_MAX),
+    rotateX: clamp(-(velocityY * DRAG_TILT_FACTOR + accelY * DRAG_ACCEL_TILT_FACTOR), -DRAG_TILT_MAX, DRAG_TILT_MAX),
+    rotateY: clamp(velocityX * DRAG_TILT_FACTOR + accelX * DRAG_ACCEL_TILT_FACTOR, -DRAG_TILT_MAX, DRAG_TILT_MAX),
+    rotateZ: clamp(torque * DRAG_TORQUE_FACTOR + torqueAccel * DRAG_ACCEL_TORQUE_FACTOR, -DRAG_SPIN_MAX, DRAG_SPIN_MAX),
+    scale: 1.012 + clamp(speed * 0.008, 0, 0.012),
+    originX: clamp(50 + gripX * DRAG_ORIGIN_RANGE, 26, 74),
+    originY: clamp(50 + gripY * DRAG_ORIGIN_RANGE, 26, 74),
+  }
+}
 
 // Anim
 const useBlurAnim = (visble: boolean, angle: number = 0) => {
@@ -78,6 +129,7 @@ const Picture = React.memo(({
   const mediaFrameRef = useRef<HTMLDivElement>(null)
   const dragLayerRef = useRef<HTMLDivElement>(null)
   const pictureRef = useRef<HTMLElement>(null)
+  const dragPoseRef = useRef<HTMLDivElement>(null)
   const suppressClickRef = useRef(false)
   const dragStateRef = useRef({
     pointerId: -1,
@@ -85,6 +137,15 @@ const Picture = React.memo(({
     startY: 0,
     originX: 0,
     originY: 0,
+    lastOffsetX: 0,
+    lastOffsetY: 0,
+    lastMoveAt: 0,
+    velocityX: 0,
+    velocityY: 0,
+    accelX: 0,
+    accelY: 0,
+    gripX: 0,
+    gripY: 0,
     moved: false,
   })
 
@@ -110,6 +171,7 @@ const Picture = React.memo(({
   const allowDrag = draggable && loaded && !isLightboxAnim
 
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [dragPose, setDragPose] = useState<DragPose>(DRAG_POSE_DEFAULT)
   const [dragging, setDragging] = useState(false)
   const [glare, setGlare] = useState(GLARE_DEFAULT)
   const [glareActive, setGlareActive] = useState(false)
@@ -118,6 +180,7 @@ const Picture = React.memo(({
 
   useEffect(() => {
     setDragOffset({ x: 0, y: 0 })
+    setDragPose(DRAG_POSE_DEFAULT)
     setDragging(false)
     setGlare(GLARE_DEFAULT)
     setGlareActive(false)
@@ -128,6 +191,15 @@ const Picture = React.memo(({
       startY: 0,
       originX: 0,
       originY: 0,
+      lastOffsetX: 0,
+      lastOffsetY: 0,
+      lastMoveAt: 0,
+      velocityX: 0,
+      velocityY: 0,
+      accelX: 0,
+      accelY: 0,
+      gripX: 0,
+      gripY: 0,
       moved: false,
     }
   }, [draggable, left, top, width, height])
@@ -145,7 +217,7 @@ const Picture = React.memo(({
       updateTargetRectCenter()
     })
     return () => cancelAnimationFrame(frame)
-  }, [dragOffset.x, dragOffset.y, isExpanded])
+  }, [dragOffset.x, dragOffset.y, dragPose.shiftX, dragPose.shiftY, isExpanded])
 
   useEffect(() => {
     if (!shuffleToken) return
@@ -193,12 +265,24 @@ const Picture = React.memo(({
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!allowDrag || e.button !== 0) return
+    const bounds = pictureRef.current?.getBoundingClientRect() || e.currentTarget.getBoundingClientRect()
+    const gripX = bounds.width ? clamp((e.clientX - (bounds.left + bounds.width / 2)) / (bounds.width / 2), -1, 1) : 0
+    const gripY = bounds.height ? clamp((e.clientY - (bounds.top + bounds.height / 2)) / (bounds.height / 2), -1, 1) : 0
     dragStateRef.current = {
       pointerId: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
       originX: dragOffset.x,
       originY: dragOffset.y,
+      lastOffsetX: dragOffset.x,
+      lastOffsetY: dragOffset.y,
+      lastMoveAt: performance.now(),
+      velocityX: 0,
+      velocityY: 0,
+      accelX: 0,
+      accelY: 0,
+      gripX,
+      gripY,
       moved: false,
     }
     setGlareActive(true)
@@ -220,10 +304,31 @@ const Picture = React.memo(({
       setDragging(true)
       onRequestFront?.('drag')
     }
-    setDragOffset({
+    const nextOffset = {
       x: clamp(state.originX + deltaX, dragBounds.minX, dragBounds.maxX),
       y: clamp(state.originY + deltaY, dragBounds.minY, dragBounds.maxY),
-    })
+    }
+    const now = performance.now()
+    const dt = clamp(now - state.lastMoveAt, 16, 34)
+    const deltaOffsetX = nextOffset.x - state.lastOffsetX
+    const deltaOffsetY = nextOffset.y - state.lastOffsetY
+    const rawVelocityX = deltaOffsetX / dt
+    const rawVelocityY = deltaOffsetY / dt
+    const nextVelocityX = state.velocityX * (1 - DRAG_VELOCITY_BLEND) + rawVelocityX * DRAG_VELOCITY_BLEND
+    const nextVelocityY = state.velocityY * (1 - DRAG_VELOCITY_BLEND) + rawVelocityY * DRAG_VELOCITY_BLEND
+    const nextAccelX = (nextVelocityX - state.velocityX) / dt
+    const nextAccelY = (nextVelocityY - state.velocityY) / dt
+
+    state.lastOffsetX = nextOffset.x
+    state.lastOffsetY = nextOffset.y
+    state.lastMoveAt = now
+    state.velocityX = nextVelocityX
+    state.velocityY = nextVelocityY
+    state.accelX = nextAccelX
+    state.accelY = nextAccelY
+
+    setDragOffset(nextOffset)
+    setDragPose(createDragPose(state.gripX, state.gripY, nextVelocityX, nextVelocityY, nextAccelX, nextAccelY))
   }, [allowDrag, dragBounds.maxX, dragBounds.maxY, dragBounds.minX, dragBounds.minY, onRequestFront, updateGlare])
 
   const releasePointer = useCallback((pointerId: number, target: HTMLDivElement) => {
@@ -233,6 +338,14 @@ const Picture = React.memo(({
     suppressClickRef.current = dragStateRef.current.moved
     dragStateRef.current.pointerId = -1
     dragStateRef.current.moved = false
+    dragStateRef.current.lastMoveAt = 0
+    dragStateRef.current.velocityX = 0
+    dragStateRef.current.velocityY = 0
+    dragStateRef.current.accelX = 0
+    dragStateRef.current.accelY = 0
+    dragStateRef.current.gripX = 0
+    dragStateRef.current.gripY = 0
+    setDragPose(DRAG_POSE_DEFAULT)
     setDragging(false)
   }, [])
 
@@ -289,6 +402,10 @@ const Picture = React.memo(({
   }, [isExpanded, loaded, onExpand, onClose, index, onRequestFront])
 
   const dragTransform = `translate3d(${baseLeft}px, ${baseTop}px, 0)`
+  const dragPoseStyle = useMemo(() => ({
+    transform: `translate3d(${dragPose.shiftX}px, ${dragPose.shiftY}px, 0) rotateX(${dragPose.rotateX}deg) rotateY(${dragPose.rotateY}deg) rotateZ(${dragPose.rotateZ}deg) scale(${dragPose.scale})`,
+    transformOrigin: `${dragPose.originX}% ${dragPose.originY}%`,
+  }) as CSSProperties, [dragPose])
   const glareStyle = useMemo(() => ({
     '--glare-x': `${glare.x}%`,
     '--glare-y': `${glare.y}%`,
@@ -326,30 +443,32 @@ const Picture = React.memo(({
         }}
         onClick={handleClick}
       >
-        <Parallax innerClassName={styles.parallax} rectSourceRef={pictureRef}>
-          <div className={`${styles.imageWrapper}${shuffleActive ? ` ${styles.imageWrapperShuffle}` : ''}`} style={{ padding: PICTURE_INNER_PADDING }}>
-            <div className={styles.mediaFrame} ref={mediaFrameRef} style={glareStyle}>
-              <img
-                className={styles.image}
-                src={pic.path}
-                alt={pic.title}
-                loading="lazy"
-                draggable={false}
-                style={{ width, height }}
-                onLoad={updateLoaded}
-              />
-              <span className={styles.specular}/>
-              <span className={`${styles.foil}${glareActive ? ` ${styles.foilActive}` : ''}`}/>
+        <div ref={dragPoseRef} className={`${styles.dragPose}${dragging ? ` ${styles.dragPoseActive}` : ''}`} style={dragPoseStyle}>
+          <Parallax innerClassName={styles.parallax} rectSourceRef={dragPoseRef}>
+            <div className={`${styles.imageWrapper}${shuffleActive ? ` ${styles.imageWrapperShuffle}` : ''}`} style={{ padding: PICTURE_INNER_PADDING }}>
+              <div className={styles.mediaFrame} ref={mediaFrameRef} style={glareStyle}>
+                <img
+                  className={styles.image}
+                  src={pic.path}
+                  alt={pic.title}
+                  loading="lazy"
+                  draggable={false}
+                  style={{ width, height }}
+                  onLoad={updateLoaded}
+                />
+                <span className={styles.specular}/>
+                <span className={`${styles.foil}${glareActive ? ` ${styles.foilActive}` : ''}`}/>
+              </div>
+              <span className={styles.label} style={{
+                lineHeight: `${PICTURE_LABEL_LINE_HEIGHT}px`,
+                marginTop: PICTURE_LABEL_MARGIN_TOP,
+                marginBottom: PICTURE_LABEL_MARGIN_BOTTOM
+              }}>
+                {pic.date?.replace(/-/g, '.')}
+              </span>
             </div>
-            <span className={styles.label} style={{
-              lineHeight: `${PICTURE_LABEL_LINE_HEIGHT}px`,
-              marginTop: PICTURE_LABEL_MARGIN_TOP,
-              marginBottom: PICTURE_LABEL_MARGIN_BOTTOM
-            }}>
-              {pic.date?.replace(/-/g, '.')}
-            </span>
-          </div>
-        </Parallax>
+          </Parallax>
+        </div>
       </picture>
     </div>
   )

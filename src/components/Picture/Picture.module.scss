@@ -17,9 +17,18 @@
       box-shadow:
         0 14px 40px rgba(10, 8, 6, 0.36),
         0 24px 72px rgba(10, 8, 6, 0.24);
-      transform: rotate(-0.3deg) scale(1.015);
     }
   }
+}
+
+.dragPose {
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dragPoseActive {
+  transition: transform 0.09s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .picture {
@@ -152,6 +161,7 @@
 @media (prefers-reduced-motion: reduce) {
   .dragLayer,
   .dragLayer.dragLayerDragging,
+  .dragPose,
   .picture .imageWrapper,
   .picture .image {
     transition: none;
