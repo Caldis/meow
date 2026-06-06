@@ -1,5 +1,5 @@
 // Libs
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 // Styles
 import styles from './Donate.module.scss'
@@ -54,6 +54,30 @@ export const DonateModal = ({ open, onClose }: Props) => {
   const [channel, setChannel] = useState<QrChannel>('alipay')
   const showCnQr = isSimplifiedChinese()
 
+  // Keep the modal mounted through its exit animation: when `open` flips false
+  // we play the closing animation, then unmount after it finishes.
+  const EXIT_MS = 280
+  const [mounted, setMounted] = useState(open)
+  const [closing, setClosing] = useState(false)
+  const exitTimerRef = useRef<number>(0)
+
+  useEffect(() => {
+    if (open) {
+      if (exitTimerRef.current) { clearTimeout(exitTimerRef.current); exitTimerRef.current = 0 }
+      setMounted(true)
+      setClosing(false)
+    } else if (mounted) {
+      setClosing(true)
+      exitTimerRef.current = window.setTimeout(() => {
+        setMounted(false)
+        setClosing(false)
+        exitTimerRef.current = 0
+      }, EXIT_MS)
+    }
+  }, [open, mounted])
+
+  useEffect(() => () => { if (exitTimerRef.current) clearTimeout(exitTimerRef.current) }, [])
+
   // Esc to close + body scroll lock while open
   useEffect(() => {
     if (!open) return
@@ -69,15 +93,15 @@ export const DonateModal = ({ open, onClose }: Props) => {
     }
   }, [open, onClose])
 
-  if (!open) return null
+  if (!mounted) return null
 
   return createPortal(
     <div
-      className={styles.backdrop}
+      className={`${styles.backdrop}${closing ? ` ${styles.closing}` : ''}`}
       role="presentation"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className={styles.dialog} role="dialog" aria-modal="true" aria-label="喂胖大咪">
+      <div className={`${styles.dialog}${closing ? ` ${styles.closing}` : ''}`} role="dialog" aria-modal="true" aria-label="喂胖大咪">
 
         <header className={styles.header}>
           <h3 className={styles.title}>喂胖大咪</h3>

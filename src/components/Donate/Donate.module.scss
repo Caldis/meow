@@ -232,6 +232,23 @@ $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   to { opacity: 1; transform: scale(1); }
 }
 
+/* Exit animations — played while `closing`, then the component unmounts. */
+.backdrop.closing {
+  animation: backdrop-out 0.26s ease-in forwards;
+}
+
+.dialog.closing {
+  animation: dialog-out 0.26s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+@keyframes backdrop-out {
+  to { opacity: 0; }
+}
+
+@keyframes dialog-out {
+  to { opacity: 0; transform: translateY(8px) scale(0.97); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .backdrop, .dialog, .qr { animation: none; }
+  .backdrop, .backdrop.closing, .dialog, .dialog.closing, .qr { animation: none; }
 }
