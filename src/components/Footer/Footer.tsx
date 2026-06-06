@@ -21,7 +21,10 @@ const PROJECTS: Project[] = [
     name: 'Mos',
     tagline: '让鼠标变得顺滑',
     icon: `${PUB}/projects/mos.png`,
-    href: 'https://github.com/Caldis/Mos',
+    // Official site, with UTM params so Mos's GA4 attributes the visit to meow
+    // (the link uses rel="noreferrer", which strips the HTTP Referer, so the
+    // source must be carried explicitly in the URL).
+    href: 'https://mos.caldis.me/?utm_source=meow&utm_medium=referral&utm_campaign=footer-dock',
   },
 ]
 
