@@ -36,7 +36,13 @@
   position: relative;
   display: block;
   will-change: transform, opacity;
-  transition: all 3.0s cubic-bezier(0.15, 0.75, 0.05, 1.00);
+  // Allowlist instead of `all`: never animate width/height (that reflows every
+  // frame). transform is fast (0.6s) so the card's rotation morphs in sync with
+  // the FLIP translate+scale on .dragLayer during a view switch; opacity/filter
+  // stay slow for the elegant blur-in on first load.
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 3.0s cubic-bezier(0.15, 0.75, 0.05, 1.00),
+              filter 3.0s cubic-bezier(0.15, 0.75, 0.05, 1.00);
 
   &.lightbox {
     transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
@@ -79,7 +85,13 @@
       object-fit: cover;
       border-radius: 4px;
       background-color: #eee9e2;
-      transition: all 3.0s cubic-bezier(0.15, 0.75, 0.05, 1.00);
+      // The <img> only ever changes its inline width/height (from rect). Under
+      // `transition: all` that animated the box geometry => layout reflow + bitmap
+      // re-raster every frame for 3s. Allowlist excludes width/height so the size
+      // snaps once at commit; nothing else on the img animates anyway.
+      transition: transform 3.0s cubic-bezier(0.15, 0.75, 0.05, 1.00),
+                  opacity 3.0s cubic-bezier(0.15, 0.75, 0.05, 1.00),
+                  filter 3.0s cubic-bezier(0.15, 0.75, 0.05, 1.00);
       pointer-events: none;
       display: block;
     }

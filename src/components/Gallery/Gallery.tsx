@@ -199,9 +199,13 @@ const Gallery = () => {
               dragTuning={dragTuning}
               stackIndex={stackIndexes[item.pic.path] ?? index + 1}
               shuffleToken={shuffleTokens[item.pic.path] ?? 0}
-              onRequestFront={(reason) => handleRequestFront(index, reason)}
+              onRequestFront={handleRequestFront}
               lightbox={index === lightboxIndex}
-              lightboxOpen={lightboxOpen}
+              // Only the lightbox card reads lightboxOpen; feeding `false` to the
+              // rest keeps the prop referentially stable so React.memo can skip
+              // them when the lightbox opens/closes (no behavior change — a card
+              // with lightbox=false ignores lightboxOpen internally).
+              lightboxOpen={index === lightboxIndex ? lightboxOpen : false}
               onExpand={handleExpand}
               onClose={handleClose}
               expandedScroll={index === lightboxIndex ? expandedScroll : undefined}

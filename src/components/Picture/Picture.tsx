@@ -1,5 +1,5 @@
 // Libs
-import React, { CSSProperties, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import React, { CSSProperties, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 // Styles
 import styles from './Picture.module.scss'
 // Components
@@ -141,7 +141,7 @@ interface Props {
   dragTuning?: PictureDragTuning
   stackIndex?: number
   shuffleToken?: number
-  onRequestFront?: (reason: 'click' | 'drag') => boolean
+  onRequestFront?: (index: number, reason: 'click' | 'drag') => boolean
   lightbox?: boolean
   lightboxOpen?: boolean
   onExpand?: (index: number) => void
@@ -219,6 +219,46 @@ const Picture = React.memo(({
   const [shuffleActive, setShuffleActive] = useState(false)
   const expandTimerRef = useRef<number>(0)
 
+  // FLIP: morph between view layouts with GPU transform (translate + scale)
+  // instead of animating width/height/position (which would reflow). The <img>
+  // snaps to its new size in a single reflow; the card is inverted back to its
+  // old box, then transitions to identity — so it visually glides + scales to
+  // the new layout at 60fps with no per-frame layout work.
+  const prevRectRef = useRef({ left: left ?? 0, top: top ?? 0, width: width ?? 0, height: height ?? 0 })
+  const [flip, setFlip] = useState({ dx: 0, dy: 0, sx: 1, sy: 1 })
+  const [flipAnimate, setFlipAnimate] = useState(false)
+  const flipTimerRef = useRef<number>(0)
+
+  useLayoutEffect(() => {
+    const prev = prevRectRef.current
+    const nLeft = left ?? 0, nTop = top ?? 0, nW = width ?? 0, nH = height ?? 0
+    prevRectRef.current = { left: nLeft, top: nTop, width: nW, height: nH }
+    if (!visible) return
+    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+    const oldCardW = prev.width + CARD_PAD
+    const oldCardH = prev.height + CARD_PAD + LABEL_H
+    const newCardW = nW + CARD_PAD
+    const newCardH = nH + CARD_PAD + LABEL_H
+    const dx = prev.left - nLeft
+    const dy = prev.top - nTop
+    const sx = newCardW > 0 ? oldCardW / newCardW : 1
+    const sy = newCardH > 0 ? oldCardH / newCardH : 1
+    // Nothing meaningfully moved (first paint / re-entering an identical layout).
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5 && Math.abs(sx - 1) < 0.002 && Math.abs(sy - 1) < 0.002) return
+    // Invert to the old box (no transition), then release on the next frame.
+    setFlip({ dx, dy, sx, sy })
+    setFlipAnimate(false)
+    const raf = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setFlip({ dx: 0, dy: 0, sx: 1, sy: 1 })
+        setFlipAnimate(true)
+      })
+    })
+    if (flipTimerRef.current) clearTimeout(flipTimerRef.current)
+    flipTimerRef.current = window.setTimeout(() => setFlipAnimate(false), 700)
+    return () => cancelAnimationFrame(raf)
+  }, [left, top, width, height, visible])
+
   useEffect(() => {
     setDragOffset({ x: 0, y: 0 })
     setDragPose(DRAG_POSE_DEFAULT)
@@ -249,6 +289,9 @@ const Picture = React.memo(({
     return () => {
       if (expandTimerRef.current) {
         clearTimeout(expandTimerRef.current)
+      }
+      if (flipTimerRef.current) {
+        clearTimeout(flipTimerRef.current)
       }
     }
   }, [])
@@ -343,7 +386,7 @@ const Picture = React.memo(({
       e.currentTarget.setPointerCapture(e.pointerId)
       state.moved = true
       setDragging(true)
-      onRequestFront?.('drag')
+      onRequestFront?.(index, 'drag')
     }
     const nextOffset = {
       x: clamp(state.originX + deltaX, dragBounds.minX, dragBounds.maxX),
@@ -370,7 +413,7 @@ const Picture = React.memo(({
 
     setDragOffset(nextOffset)
     setDragPose(createDragPose(state.gripX, state.gripY, nextVelocityX, nextVelocityY, nextAccelX, nextAccelY, dragTuning))
-  }, [allowDrag, dragBounds.maxX, dragBounds.maxY, dragBounds.minX, dragBounds.minY, dragTuning, onRequestFront, updateGlare])
+  }, [allowDrag, dragBounds.maxX, dragBounds.maxY, dragBounds.minX, dragBounds.minY, dragTuning, index, onRequestFront, updateGlare])
 
   const releasePointer = useCallback((pointerId: number, target: HTMLDivElement) => {
     if (target.hasPointerCapture(pointerId)) {
@@ -426,7 +469,7 @@ const Picture = React.memo(({
     if (isExpanded) {
       onClose?.()
     } else if (loaded) {
-      const movedToFront = onRequestFront?.('click') ?? false
+      const movedToFront = onRequestFront?.(index, 'click') ?? false
       if (expandTimerRef.current) {
         clearTimeout(expandTimerRef.current)
         expandTimerRef.current = 0
@@ -442,7 +485,7 @@ const Picture = React.memo(({
     }
   }, [isExpanded, loaded, onExpand, onClose, index, onRequestFront])
 
-  const dragTransform = `translate3d(${baseLeft}px, ${baseTop}px, 0)`
+  const dragTransform = `translate3d(${baseLeft}px, ${baseTop}px, 0) translate(${flip.dx}px, ${flip.dy}px) scale(${flip.sx}, ${flip.sy})`
   const dragPoseStyle = useMemo(() => ({
     transform: `translate3d(${dragPose.shiftX}px, ${dragPose.shiftY}px, 0) rotateX(${dragPose.rotateX}deg) rotateY(${dragPose.rotateY}deg) rotateZ(${dragPose.rotateZ}deg) scale(${dragPose.scale})`,
     transformOrigin: `${dragPose.originX}% ${dragPose.originY}%`,
@@ -464,6 +507,10 @@ const Picture = React.memo(({
       className={`${styles.dragLayer}${allowDrag ? ` ${styles.dragLayerActive}` : ''}${dragging ? ` ${styles.dragLayerDragging}` : ''}`}
       style={{
         transform: dragTransform,
+        transformOrigin: '0 0',
+        // Only transition during a view-switch morph; never while dragging
+        // (the drag must track the pointer instantly).
+        transition: flipAnimate && !dragging ? 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
         zIndex: isLightboxAnim ? 200 : stackIndex,
       }}
       onPointerEnter={handlePointerEnter}
