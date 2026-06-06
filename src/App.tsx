@@ -5,6 +5,7 @@ import './App.reset.scss'
 import styles from './App.module.scss'
 // Components
 import Gallery from './components/Gallery'
+import Footer from './components/Footer'
 // Utils
 import { AppContext } from './App.context'
 import { useScreenSize } from './App.hook'
@@ -30,6 +31,7 @@ function App () {
     <AppContext.Provider value={contextValue}>
       <div className={styles.app}>
         <Gallery/>
+        <Footer/>
       </div>
     </AppContext.Provider>
   )
