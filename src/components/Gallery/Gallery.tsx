@@ -8,6 +8,7 @@ import Picture from '../Picture'
 // Utils
 import { AppContext } from 'App.context'
 import { GALLERY_DATA } from 'App.constant'
+import { track } from 'utils/analytics'
 import {
   DEFAULT_PICTURE_DRAG_TUNING,
   DEFAULT_PICTURE_HIGHLIGHT_TUNING,
@@ -37,6 +38,7 @@ const Gallery = () => {
   const [viewMode, setViewMode] = useState<GalleryViewMode>(GalleryViewMode.sequential)
   const handleModeChange = useCallback((selection?: TabItemIdentifier) => {
     setViewMode(selection as GalleryViewMode)
+    track('switch_view', { view: GalleryViewMode[selection as GalleryViewMode] })
   }, [])
 
   const [highlightTuning, setHighlightTuning] = useState<PictureHighlightTuning>(DEFAULT_PICTURE_HIGHLIGHT_TUNING)
@@ -129,7 +131,8 @@ const Gallery = () => {
     setLightboxIndex(index)
     setLightboxOpen(true)
     setScrollLocked(true)
-  }, [getCurrentScroll, setScrollLocked])
+    track('expand_photo', { date: data[index]?.pic?.date, view: GalleryViewMode[viewMode] })
+  }, [data, viewMode, getCurrentScroll, setScrollLocked])
 
   const handleClose = useCallback(() => {
     setLightboxOpen(false)

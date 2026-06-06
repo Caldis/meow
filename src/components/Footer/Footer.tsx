@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react'
 import styles from './Footer.module.scss'
 // Components
 import DonateModal from '../Donate'
+// Utils
+import { track } from 'utils/analytics'
 
 const PUB = process.env.PUBLIC_URL || ''
 
@@ -60,6 +62,7 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`${p.name} · ${p.tagline}`}
+                  onClick={() => track('click_project', { project: p.id })}
                 >
                   <span className={styles.tip}>
                     <strong>{p.name}</strong>
@@ -77,7 +80,7 @@ const Footer = () => {
           <button
             className={`${styles.app} ${styles.donate}`}
             type="button"
-            onClick={() => setDonateOpen(true)}
+            onClick={() => { setDonateOpen(true); track('open_donate') }}
             aria-label="喂胖大咪"
           >
             <span className={styles.tip}>

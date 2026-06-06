@@ -3,6 +3,8 @@ import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 // Styles
 import styles from './Donate.module.scss'
+// Utils
+import { track } from 'utils/analytics'
 
 // Donation modal — structure/visuals ported from the Mos website donation
 // module (D:/Code/Mos/website) into meow's CRA + SCSS-module stack, but the
@@ -46,8 +48,8 @@ interface Props {
 }
 
 const INTERNATIONAL = [
-  { href: PAYPAL_URL, label: 'PayPal', icon: `${PUB}/donate/paypal.webp`, h: 18 },
-  { href: BMC_URL, label: 'Buy Me a Coffee', icon: `${PUB}/donate/bmc.svg`, h: 26 },
+  { id: 'paypal', href: PAYPAL_URL, label: 'PayPal', icon: `${PUB}/donate/paypal.webp`, h: 18 },
+  { id: 'bmc', href: BMC_URL, label: 'Buy Me a Coffee', icon: `${PUB}/donate/bmc.svg`, h: 26 },
 ]
 
 export const DonateModal = ({ open, onClose }: Props) => {
@@ -123,6 +125,7 @@ export const DonateModal = ({ open, onClose }: Props) => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={c.label}
+                onClick={() => track('click_donate_channel', { channel: c.id })}
               >
                 <img className={styles.channelLogo} src={c.icon} alt={c.label} style={{ height: c.h }} />
                 <span className={styles.channelArrow}><ArrowIcon /></span>
@@ -150,7 +153,7 @@ export const DonateModal = ({ open, onClose }: Props) => {
                       role="tab"
                       aria-selected={channel === ch}
                       className={`${styles.toggleBtn}${channel === ch ? ` ${styles.toggleActive}` : ''}`}
-                      onClick={() => setChannel(ch)}
+                      onClick={() => { setChannel(ch); track('select_qr', { channel: ch }) }}
                     >
                       <img src={`${PUB}/donate/${ch}-icon.webp`} alt="" width={16} height={16} />
                       <span>{CHANNEL_LABEL[ch]}</span>
