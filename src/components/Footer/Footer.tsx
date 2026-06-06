@@ -21,10 +21,11 @@ const PROJECTS: Project[] = [
     name: 'Mos',
     tagline: '让鼠标变得顺滑',
     icon: `${PUB}/projects/mos.png`,
-    // Official site, with UTM params so Mos's GA4 attributes the visit to meow
-    // (the link uses rel="noreferrer", which strips the HTTP Referer, so the
-    // source must be carried explicitly in the URL).
-    href: 'https://mos.caldis.me/?utm_source=meow&utm_medium=referral&utm_campaign=footer-dock',
+    // Official site. GA4-standard UTM tags so Mos's analytics attributes the
+    // visit to meow (rel="noreferrer" strips the HTTP Referer, so the source is
+    // carried in the URL): source = origin host, medium = referral, campaign =
+    // the cross-promo initiative, content = this placement.
+    href: 'https://mos.caldis.me/?utm_source=meow.caldis.me&utm_medium=referral&utm_campaign=cross-promo&utm_content=footer-dock',
   },
 ]
 
