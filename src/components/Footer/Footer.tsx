@@ -1,18 +1,20 @@
 // Libs
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 // Styles
 import styles from './Footer.module.scss'
 // Components
 import DonateModal from '../Donate'
 // Utils
+import { AppContext } from 'App.context'
 import { track } from 'utils/analytics'
+import { t } from 'utils/i18n'
 
 const PUB = process.env.PUBLIC_URL || ''
 
 interface Project {
   id: string
   name: string
-  tagline: string
+  taglineKey: string
   icon: string
   href: string
 }
@@ -21,7 +23,7 @@ const PROJECTS: Project[] = [
   {
     id: 'mos',
     name: 'Mos',
-    tagline: '让鼠标变得顺滑',
+    taglineKey: 'mos.tagline',
     icon: `${PUB}/projects/mos.png`,
     // Official site. GA4-standard UTM tags so Mos's analytics attributes the
     // visit to meow (rel="noreferrer" strips the HTTP Referer, so the source is
@@ -37,7 +39,14 @@ const HeartIcon = () => (
   </svg>
 )
 
-const Footer = () => {
+interface FooterProps {
+  // When the lightbox is open, the dock retreats below the fold so the enlarged
+  // photo owns the stage.
+  hidden?: boolean
+}
+
+const Footer = ({ hidden = false }: FooterProps) => {
+  const { lang } = useContext(AppContext)
   const [donateOpen, setDonateOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -49,30 +58,33 @@ const Footer = () => {
 
   return (
     <>
-      <div className={styles.scrim} aria-hidden="true" />
+      <div className={`${styles.scrim}${hidden ? ` ${styles.scrimHidden}` : ''}`} aria-hidden="true" />
 
-      <footer className={`${styles.footer}${mounted ? ` ${styles.footerIn}` : ''}`}>
+      <footer className={`${styles.footer}${mounted ? ` ${styles.footerIn}` : ''}${hidden ? ` ${styles.footerHidden}` : ''}`}>
         <nav className={styles.dock} aria-label="项目与支持">
           <ul className={styles.apps}>
-            {PROJECTS.map((p) => (
+            {PROJECTS.map((p) => {
+              const tagline = t(p.taglineKey, lang)
+              return (
               <li className={styles.appItem} key={p.id}>
                 <a
                   className={styles.app}
                   href={p.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={`${p.name} · ${p.tagline}`}
+                  aria-label={`${p.name} · ${tagline}`}
                   onClick={() => track('click_project', { project: p.id })}
                 >
                   <span className={styles.tip}>
                     <strong>{p.name}</strong>
-                    <small>{p.tagline}</small>
+                    <small>{tagline}</small>
                   </span>
                   <img className={styles.appIcon} src={p.icon} alt={p.name} draggable={false} />
                   <span className={styles.gloss} aria-hidden="true" />
                 </a>
               </li>
-            ))}
+              )
+            })}
           </ul>
 
           <span className={styles.sep} aria-hidden="true" />
@@ -81,11 +93,11 @@ const Footer = () => {
             className={`${styles.app} ${styles.donate}`}
             type="button"
             onClick={() => { setDonateOpen(true); track('open_donate') }}
-            aria-label="喂胖大咪"
+            aria-label={t('donate.feed', lang)}
           >
             <span className={styles.tip}>
-              <strong>喂胖大咪</strong>
-              <small>给大咪加餐</small>
+              <strong>{t('donate.feed', lang)}</strong>
+              <small>{t('donate.snack', lang)}</small>
             </span>
             <span className={styles.donateGlyph}><HeartIcon /></span>
             <span className={styles.gloss} aria-hidden="true" />

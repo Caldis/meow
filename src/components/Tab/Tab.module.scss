@@ -22,6 +22,21 @@
     color: rgba(236, 229, 219, 0.88);
   }
 
+  // Rendered on every item so its width is always reserved — activating a tab
+  // only fades the indicator in (opacity), it never changes layout, so the text
+  // never gets "bumped". Only the active item's copy is opaque.
+  .adornment {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    margin-left: 4px;
+    opacity: 0;
+    transition: opacity 0.35s ease-out;
+  }
+  .adornmentActive {
+    opacity: 1;
+  }
+
   .pill {
     position: absolute;
     bottom: 0;

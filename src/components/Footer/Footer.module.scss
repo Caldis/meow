@@ -17,6 +17,12 @@ $ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     rgba(20, 18, 16, 0.55) 48%,
     transparent 100%
   );
+  transition: opacity 0.5s ease-out;
+}
+
+/* Lightbox open: the scrim fades with the dock. */
+.scrimHidden {
+  opacity: 0;
 }
 
 .footer {
@@ -33,6 +39,18 @@ $ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 .footerIn {
   transform: translate(-50%, 0);
   opacity: 1;
+}
+
+// Lightbox open: the dock slides fully below the bottom edge and fades. Defined
+// after .footerIn so it wins when both classes are present. A faster (0.5s) hide
+// keeps it in step with the overlay; the return rides the gentler base transition
+// so the dock settles back in like a soft re-entrance. The extra margin clears
+// the dock's own bottom offset so it ends up entirely off-screen.
+.footerHidden {
+  transform: translate(-50%, calc(100% + 48px));
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.5s $ease-out, opacity 0.5s ease-out;
 }
 
 .dock {

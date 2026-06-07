@@ -1,10 +1,12 @@
 // Libs
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 // Styles
 import styles from './Donate.module.scss'
 // Utils
+import { AppContext } from 'App.context'
 import { track } from 'utils/analytics'
+import { t } from 'utils/i18n'
 
 // Donation modal — structure/visuals ported from the Mos website donation
 // module (D:/Code/Mos/website) into meow's CRA + SCSS-module stack, but the
@@ -25,9 +27,9 @@ const CHANNEL_LABEL: Record<QrChannel, string> = { alipay: '支付宝', wechat: 
 // Alipay/WeChat are mainland-only channels — only surface the QR for
 // Simplified-Chinese visitors (zh-Hans / zh-CN / zh-SG …), not Traditional or
 // other locales.
-const isSimplifiedChinese = () => {
-  const lang = (navigator.language || '').toLowerCase()
-  return lang.startsWith('zh') && !/(hant|tw|hk|mo)/.test(lang)
+const isSimplifiedChinese = (lang: string) => {
+  const l = (lang || '').toLowerCase()
+  return l.startsWith('zh') && !/(hant|tw|hk|mo)/.test(l)
 }
 
 const ArrowIcon = () => (
@@ -53,8 +55,9 @@ const INTERNATIONAL = [
 ]
 
 export const DonateModal = ({ open, onClose }: Props) => {
+  const { lang } = useContext(AppContext)
   const [channel, setChannel] = useState<QrChannel>('alipay')
-  const showCnQr = isSimplifiedChinese()
+  const showCnQr = isSimplifiedChinese(lang)
 
   // Keep the modal mounted through its exit animation: when `open` flips false
   // we play the closing animation, then unmount after it finishes.
@@ -103,17 +106,17 @@ export const DonateModal = ({ open, onClose }: Props) => {
       role="presentation"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className={`${styles.dialog}${closing ? ` ${styles.closing}` : ''}`} role="dialog" aria-modal="true" aria-label="喂胖大咪">
+      <div className={`${styles.dialog}${closing ? ` ${styles.closing}` : ''}`} role="dialog" aria-modal="true" aria-label={t('donate.feed', lang)}>
 
         <header className={styles.header}>
-          <h3 className={styles.title}>喂胖大咪</h3>
-          <button className={styles.close} type="button" onClick={onClose} aria-label="关闭对话框">
+          <h3 className={styles.title}>{t('donate.feed', lang)}</h3>
+          <button className={styles.close} type="button" onClick={onClose} aria-label={t('donate.close', lang)}>
             <CloseIcon />
           </button>
         </header>
 
         <div className={styles.body}>
-          <p className={styles.intro}>给大咪加餐</p>
+          <p className={styles.intro}>{t('donate.snack', lang)}</p>
 
           {/* International, link-based channels */}
           <div className={styles.channels}>

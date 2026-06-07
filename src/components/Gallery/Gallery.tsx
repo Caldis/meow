@@ -9,6 +9,7 @@ import Picture from '../Picture'
 import { AppContext } from 'App.context'
 import { GALLERY_DATA } from 'App.constant'
 import { track } from 'utils/analytics'
+import { t } from 'utils/i18n'
 import {
   DEFAULT_PICTURE_DRAG_TUNING,
   DEFAULT_PICTURE_HIGHLIGHT_TUNING,
@@ -16,16 +17,70 @@ import {
   PictureHighlightTuning
 } from 'components/Picture/Picture.constant'
 import { TabItemIdentifier } from 'components/Tab/Tab.constant'
-import { GalleryViewMode, SAFE_LABEL_HEIGHT, SAFE_PADDING, SEQUENTIAL_BREAK_POINT, STAGE_BREAK_POINT, VIEW_MODE_LABELS, getLocalizedTitle } from 'components/Gallery/Gallery.constant'
+import { GalleryViewMode, SAFE_LABEL_HEIGHT, SAFE_PADDING, SEQUENTIAL_BREAK_POINT, STAGE_BREAK_POINT } from 'components/Gallery/Gallery.constant'
 import { getColumnSlot, getRandomRect, getSequentialRect, getStageRect } from './Gallery.utils'
 import { useCustomScroll } from './Gallery.hook'
 
 const IS_DEV = process.env.NODE_ENV === 'development'
+// Accumulated wheel delta (px, within one gesture) needed to dismiss the
+// lightbox by scrolling. Tunable from the debug panel; this is the shipped value.
+const DEFAULT_WHEEL_EXIT_THRESHOLD = 70
 
-const Gallery = () => {
+// Stable tab order — hoisted so Tab receives the same array reference every render
+// (a fresh literal would re-trigger Tab's measurement effect needlessly).
+const VIEW_ITEMS = [GalleryViewMode.random, GalleryViewMode.sequential, GalleryViewMode.stage]
+
+// Debug-panel language choices. zh-CN / zh-TW are split out so the donate modal's
+// Simplified-Chinese-only QR gating can be exercised; the rest cover the titles.
+const LANG_OPTIONS: { value: string; label: string }[] = [
+  { value: 'zh-CN', label: '简体中文' },
+  { value: 'zh-TW', label: '繁體中文' },
+  { value: 'en', label: 'English' },
+  { value: 'ja', label: '日本語' },
+  { value: 'ko', label: '한국어' },
+  { value: 'fr', label: 'Français' },
+  { value: 'de', label: 'Deutsch' },
+  { value: 'es', label: 'Español' },
+  { value: 'pt', label: 'Português' },
+  { value: 'it', label: 'Italiano' },
+  { value: 'ru', label: 'Русский' },
+  { value: 'ar', label: 'العربية' },
+  { value: 'hi', label: 'हिन्दी' },
+  { value: 'th', label: 'ไทย' },
+  { value: 'vi', label: 'Tiếng Việt' },
+  { value: 'tr', label: 'Türkçe' },
+  { value: 'nl', label: 'Nederlands' },
+]
+
+// Sort-direction indicator on the active tab — three left-aligned bars (a "sort
+// by amount" glyph, deliberately not an arrow). Ascending = bars grow downward
+// (short→long); descending reverses. Each bar's WIDTH transitions independently,
+// so the glyph fluidly morphs between states rather than flipping.
+// Integer px (not %) so the bar ends land on the pixel grid and stay crisp.
+const SORT_BAR_WIDTHS = {
+  asc: ['5px', '8px', '12px'],
+  desc: ['12px', '8px', '5px'],
+}
+const SortIcon = ({ order }: { order: 'asc' | 'desc' }) => {
+  const widths = SORT_BAR_WIDTHS[order]
+  return (
+    <span className={styles.sortIcon} aria-hidden="true">
+      <span className={styles.sortBar} style={{ width: widths[0] }} />
+      <span className={styles.sortBar} style={{ width: widths[1] }} />
+      <span className={styles.sortBar} style={{ width: widths[2] }} />
+    </span>
+  )
+}
+
+interface GalleryProps {
+  // Reports lightbox open/close so the app shell can retreat the header + dock.
+  onLightboxChange?: (open: boolean) => void
+}
+
+const Gallery = ({ onLightboxChange }: GalleryProps) => {
 
   // Context
-  const { isInitialized, screenSize } = useContext(AppContext)
+  const { isInitialized, screenSize, lang, langOverride, setLangOverride } = useContext(AppContext)
 
   // Data
   const [data, setData] = useState<{ pic: Pic; rect: Rect }[]>([])
@@ -34,11 +89,21 @@ const Gallery = () => {
   const stackIndexesRef = useRef<Record<string, number>>({})
   const frontCounterRef = useRef(0)
 
-  // View Mode
+  // View Mode + sort direction. Clicking a non-active tab switches view; clicking
+  // the already-active tab flips the sort order (asc = oldest→newest, top→bottom).
   const [viewMode, setViewMode] = useState<GalleryViewMode>(GalleryViewMode.sequential)
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const viewModeRef = useRef(viewMode)
+  viewModeRef.current = viewMode
   const handleModeChange = useCallback((selection?: TabItemIdentifier) => {
-    setViewMode(selection as GalleryViewMode)
-    track('switch_view', { view: GalleryViewMode[selection as GalleryViewMode] })
+    const next = selection as GalleryViewMode
+    if (next === viewModeRef.current) {
+      setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'))
+      track('toggle_sort', { view: GalleryViewMode[next] })
+      return
+    }
+    setViewMode(next)
+    track('switch_view', { view: GalleryViewMode[next] })
   }, [])
 
   const [highlightTuning, setHighlightTuning] = useState<PictureHighlightTuning>(DEFAULT_PICTURE_HIGHLIGHT_TUNING)
@@ -63,10 +128,13 @@ const Gallery = () => {
   // Fill
   useEffect(() => {
     if (isInitialized) {
+      // Apply sort direction by reversing the (chronological) source order; the
+      // layout functions place pics in array order, so this flips the timeline.
+      const ordered = sortOrder === 'desc' ? [...GALLERY_DATA].reverse() : GALLERY_DATA
       // Fill by modes
       switch (viewMode) {
         case GalleryViewMode.random:
-          setData(GALLERY_DATA.map(pic => {
+          setData(ordered.map(pic => {
             const rect = getRandomRect(pic, screenSize)
             return { pic, rect }
           }))
@@ -75,7 +143,7 @@ const Gallery = () => {
           const sequentialColumns = {
             current: new Array(getColumnSlot(screenSize, SEQUENTIAL_BREAK_POINT)).fill(0).map(_ => []) as Rect[][]
           }
-          setData(GALLERY_DATA.map(pic => {
+          setData(ordered.map(pic => {
             const rect = getSequentialRect(pic, screenSize, sequentialColumns)
             return { pic, rect }
           }))
@@ -84,14 +152,14 @@ const Gallery = () => {
           const stageColumns = {
             current: new Array(getColumnSlot(screenSize, STAGE_BREAK_POINT)).fill(0).map(_ => []) as Rect[][]
           }
-          setData(GALLERY_DATA.map(pic => {
+          setData(ordered.map(pic => {
             const rect = getStageRect(pic, screenSize, stageColumns)
             return { pic, rect }
           }))
           break
       }
     }
-  }, [isInitialized, screenSize, viewMode])
+  }, [isInitialized, screenSize, viewMode, sortOrder])
 
   useEffect(() => {
     const nextIndexes = data.reduce((acc, item, index) => {
@@ -114,7 +182,15 @@ const Gallery = () => {
       return Math.max(max, (item.rect.top ?? 0) + h)
     }, 0)
   }, [data, screenSize.height])
-  const { scrollTo, maxScroll, setScrollLocked, getCurrentScroll } = useCustomScroll(scrollerRef, thumbRef, contentHeight, screenSize.height)
+  // Wheel-to-exit: a decisive scroll while the lightbox is open dismisses it.
+  // The threshold is tunable live from the debug panel (dev only) and ships at
+  // its default. handleClose is defined further down, so bridge it through a ref
+  // to hand the scroll hook a stable callback.
+  const [wheelExitThreshold, setWheelExitThreshold] = useState(DEFAULT_WHEEL_EXIT_THRESHOLD)
+  const handleCloseRef = useRef<() => void>(() => {})
+  const requestLightboxExit = useCallback(() => handleCloseRef.current(), [])
+
+  const { scrollTo, maxScroll, setScrollLocked, getCurrentScroll } = useCustomScroll(scrollerRef, thumbRef, contentHeight, screenSize.height, wheelExitThreshold, requestLightboxExit)
 
   // Lightbox
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
@@ -142,6 +218,14 @@ const Gallery = () => {
       closeTimer.current = 0
     }, 700)
   }, [setScrollLocked])
+  // Keep the ref pointing at the latest handleClose for the scroll hook.
+  handleCloseRef.current = handleClose
+
+  // Surface lightbox open/close to the app shell so the top header and the
+  // bottom dock can crossfade out of the way of the enlarged photo.
+  useEffect(() => {
+    onLightboxChange?.(lightboxOpen)
+  }, [lightboxOpen, onLightboxChange])
 
   const handleTitleClick = useCallback(() => scrollTo(0), [scrollTo])
   const handleTrackClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -176,16 +260,24 @@ const Gallery = () => {
     return true
   }, [data, viewMode])
 
+  // Localized view-mode labels for the tab bar (rebuild only when lang changes).
+  const viewLabels = useMemo<Record<number, string>>(() => ({
+    [GalleryViewMode.random]: t('tab.random', lang),
+    [GalleryViewMode.sequential]: t('tab.sequential', lang),
+    [GalleryViewMode.stage]: t('tab.stage', lang),
+  }), [lang])
+
   return (
     <main className={styles.gallery}>
 
-      <header className={styles.header}>
-        <h1 className={styles.title} onClick={handleTitleClick}>{getLocalizedTitle()}</h1>
+      <header className={`${styles.header}${lightboxOpen ? ` ${styles.headerHidden}` : ''}`}>
+        <h1 className={styles.title} onClick={handleTitleClick}>{t('app.title', lang)}</h1>
         <Tab
           value={viewMode}
           onChange={handleModeChange}
-          items={[GalleryViewMode.random, GalleryViewMode.sequential, GalleryViewMode.stage]}
-          labels={VIEW_MODE_LABELS}
+          items={VIEW_ITEMS}
+          labels={viewLabels}
+          activeAdornment={<SortIcon order={sortOrder} />}
         />
       </header>
 
@@ -358,6 +450,42 @@ const Gallery = () => {
                 value={dragTuning.gripGain}
                 onChange={(e) => updateDragTuning('gripGain', Number(e.target.value))}
               />
+            </label>
+          </div>
+
+          <div className={styles.debugSection}>
+            <strong className={styles.debugSectionTitle}>弹窗</strong>
+
+            <label className={styles.debugControl}>
+              <span>滚轮退出阈值</span>
+              <strong>{wheelExitThreshold}</strong>
+              <input
+                type="range"
+                min="40"
+                max="800"
+                step="10"
+                value={wheelExitThreshold}
+                onChange={(e) => setWheelExitThreshold(Number(e.target.value))}
+              />
+            </label>
+          </div>
+
+          <div className={styles.debugSection}>
+            <strong className={styles.debugSectionTitle}>本地化</strong>
+
+            <label className={styles.debugControl}>
+              <span>页面语言</span>
+              <strong>{lang}</strong>
+              <select
+                className={styles.debugSelect}
+                value={langOverride ?? ''}
+                onChange={(e) => setLangOverride(e.target.value || null)}
+              >
+                <option value="">系统 ({navigator.language})</option>
+                {LANG_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
             </label>
           </div>
         </aside>

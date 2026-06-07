@@ -106,3 +106,6 @@ dist
 .DS_Store
 build
 build/*
+
+# Playwright MCP scratch output
+.playwright-mcp/

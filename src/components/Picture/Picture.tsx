@@ -225,8 +225,15 @@ const Picture = React.memo(({
   // old box, then transitions to identity — so it visually glides + scales to
   // the new layout at 60fps with no per-frame layout work.
   const prevRectRef = useRef({ left: left ?? 0, top: top ?? 0, width: width ?? 0, height: height ?? 0 })
-  const [flip, setFlip] = useState({ dx: 0, dy: 0, sx: 1, sy: 1 })
-  const [flipAnimate, setFlipAnimate] = useState(false)
+  // The flip offset (dx/dy/sx/sy) and `animate` flag share ONE state object so
+  // the release commits both together. React 17 does NOT batch setState inside a
+  // bare requestAnimationFrame: two separate setState calls would commit in two
+  // renders, landing transform→identity while `animate` was still false
+  // (transition:none) — the card snapped to its new spot before the transition
+  // turned on (the "teleport"). A single object guarantees transform + transition
+  // change in the same commit, so the browser sees a value change under a live
+  // transition and glides across the view switch.
+  const [flip, setFlip] = useState({ dx: 0, dy: 0, sx: 1, sy: 1, animate: false })
   const flipTimerRef = useRef<number>(0)
 
   useLayoutEffect(() => {
@@ -246,16 +253,15 @@ const Picture = React.memo(({
     // Nothing meaningfully moved (first paint / re-entering an identical layout).
     if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5 && Math.abs(sx - 1) < 0.002 && Math.abs(sy - 1) < 0.002) return
     // Invert to the old box (no transition), then release on the next frame.
-    setFlip({ dx, dy, sx, sy })
-    setFlipAnimate(false)
+    setFlip({ dx, dy, sx, sy, animate: false })
     const raf = requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        setFlip({ dx: 0, dy: 0, sx: 1, sy: 1 })
-        setFlipAnimate(true)
+        // One atomic update: transform → identity AND transition → on together.
+        setFlip({ dx: 0, dy: 0, sx: 1, sy: 1, animate: true })
       })
     })
     if (flipTimerRef.current) clearTimeout(flipTimerRef.current)
-    flipTimerRef.current = window.setTimeout(() => setFlipAnimate(false), 700)
+    flipTimerRef.current = window.setTimeout(() => setFlip((f) => ({ ...f, animate: false })), 700)
     return () => cancelAnimationFrame(raf)
   }, [left, top, width, height, visible])
 
@@ -510,8 +516,13 @@ const Picture = React.memo(({
         transformOrigin: '0 0',
         // Only transition during a view-switch morph; never while dragging
         // (the drag must track the pointer instantly).
-        transition: flipAnimate && !dragging ? 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
+        transition: flip.animate && !dragging ? 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
         zIndex: isLightboxAnim ? 200 : stackIndex,
+        // While expanded this layer is z-200 but its box stays at the thumbnail's
+        // grid spot — a phantom hit-zone over the dark overlay. Make it transparent
+        // to clicks so anywhere outside the centered photo falls through to the
+        // overlay (which closes the lightbox); the photo itself re-enables clicks.
+        pointerEvents: isExpanded ? 'none' : undefined,
       }}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
@@ -528,6 +539,9 @@ const Picture = React.memo(({
           filter: blurAnim.filter,
           transform: pictureTransform,
           cursor: loaded ? (isExpanded ? 'zoom-out' : 'zoom-in') : undefined,
+          // Re-enable clicks on the photo itself (parent dragLayer is none while
+          // expanded) so clicking the image still zooms out.
+          pointerEvents: isExpanded ? 'auto' : undefined,
         }}
         onClick={handleClick}
       >

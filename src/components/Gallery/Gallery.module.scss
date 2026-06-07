@@ -12,12 +12,35 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 140px;
+    height: 160px;
     background: linear-gradient(
       to bottom,
       rgba(20, 18, 16, 0.92) 0%,
       rgba(20, 18, 16, 0.5) 55%,
       transparent 100%
+    );
+    z-index: 99;
+    pointer-events: none;
+  }
+
+  // Dark radial scrim to lift the header text's contrast over busy photos.
+  // A circle anchored at the page's top-middle (50% 0) casts a downward dome
+  // over the title + tabs, layered above the linear top-scrim. The box is taller
+  // than the circle's reach so the gradient is fully transparent before its
+  // bottom edge — no hard clip line.
+  &::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 420px;
+    background: radial-gradient(
+      circle 400px at 50% 0,
+      rgba(10, 8, 7, 0.85) 0%,
+      rgba(10, 8, 7, 0.6) 38%,
+      rgba(10, 8, 7, 0.24) 66%,
+      transparent 86%
     );
     z-index: 99;
     pointer-events: none;
@@ -33,13 +56,24 @@
   position: fixed;
   top: 0;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, 0);
   z-index: 100;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding-top: clamp(18px, 3.5vh, 32px);
   gap: 10px;
+  // Crossfade with the lightbox: retreat upward + fade as the overlay (0.5s)
+  // darkens. Transform/opacity only — no layout cost.
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease-out;
+}
+
+// Lightbox open: header slides fully up past the top edge and fades out.
+// -100% clears its own height; the extra margin pushes it entirely off-screen.
+.headerHidden {
+  transform: translate(-50%, calc(-100% - 24px));
+  opacity: 0;
+  pointer-events: none;
 }
 
 .title {
@@ -54,6 +88,26 @@
   cursor: pointer;
   transition: opacity 0.3s ease-out;
   &:hover { opacity: 1; }
+}
+
+// Sort indicator: three left-aligned bars whose widths morph between sort
+// directions. Animating width (not a flip) gives a fluid reordering feel.
+// Integer height + gap give a 4px pitch, so every bar shares the same pixel
+// phase and renders identical thickness (no sub-pixel unevenness). Stack is
+// 2+2+2+2+2 = 10px (content-sized) — no centering offset to push it off-grid.
+.sortIcon {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 12px;
+}
+
+.sortBar {
+  height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+  transition: width 0.42s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .overlay {
@@ -175,6 +229,32 @@
   }
 }
 
+.debugSelect {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin-top: 2px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(236, 229, 219, 0.16);
+  background: rgba(20, 18, 16, 0.6);
+  color: rgba(250, 247, 242, 0.95);
+  font-family: $fontBody;
+  font-size: 12px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+
+  &:focus {
+    outline: none;
+    border-color: $accentWarm;
+  }
+
+  option {
+    background: #1a1714;
+    color: rgba(250, 247, 242, 0.95);
+  }
+}
+
 .debugSection {
   & + & {
     margin-top: 14px;
@@ -191,4 +271,10 @@
   font-weight: 500;
   letter-spacing: 0.06em;
   color: rgba(196, 154, 108, 0.92);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  // Keep the crossfade (opacity) but drop the directional slide.
+  .header { transition: opacity 0.4s ease-out; }
+  .headerHidden { transform: translate(-50%, 0); }
 }
