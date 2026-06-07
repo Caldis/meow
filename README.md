@@ -1,8 +1,8 @@
 # meow · 照片墙模板
 
-> 一面可把玩的照片墙 —— fork 下来、放上你自己的照片、改 **一个** 配置文件、即可部署上线。纯静态、零后端、托管在 GitHub Pages。
+> 一面可把玩的照片墙 —— 你可以 fork 下来、放上你自己的照片、改 **一个** 配置文件、即可部署上线。纯静态、零后端、托管在 GitHub Pages。
 
-🔗 **在线示例（折耳猫「大咪」）：https://meow.caldis.me**
+🔗 **在线示例「大咪成长史」：https://meow.caldis.me**
 
 ![React](https://img.shields.io/badge/React-17-61dafb?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-4.4-3178c6?logo=typescript&logoColor=white)
@@ -11,7 +11,7 @@
 
 这是一个 **fork-and-fill 模板**：引擎（动画、视图、主题、国际化等可复用逻辑）和站点身份（你是谁、放谁的照片、链到哪、收不收打赏）被彻底拆开。你只需要编辑站点身份层，引擎原封不动。
 
-> 在线示例里的「大咪」是一只英短折耳猫，属于**示例内容**——`yarn setup` 向导（或手动清空 `src/assets/`）会把这些样例照片清掉，换成你自己的。
+> 在线示例里的猫咪照片属于示例内容——`yarn setup` 向导（或手动清空 `src/assets/`）会把这些样例照片清掉，换成你自己的。
 
 ---
 
@@ -83,8 +83,6 @@ git add docs && git commit -m "deploy" && git push
 | | `public/donate/`、`public/projects/`（二维码 / 图标）、favicon / logo | ✅ 替换 |
 
 **单一配置面**：几乎所有个性化都集中在 `src/config/site.config.*` 一处。
-
-**防泄漏的空白默认值**：`site.config.ts` 导出 `BLANK_SITE_CONFIG`——打赏 / dock 关闭、GA / domain 留空。以它为起点，**一个未经修改的 fork 绝不会把打赏、统计、交叉推广点击发给原作者**。
 
 ## 📚 文档
 
