@@ -73,7 +73,7 @@ YYYY-MM-DD.宽×高.扩展名          例如  2017-09-06.2049×1537.webp
 | `domain` | 自定义域名。构建时据此生成 `docs/CNAME`；同时用作交叉推广链接的 `utm_source` | `"meow.caldis.me"`（留空则不生成 CNAME、无 UTM source） |
 | `gaMeasurementId` | GA4 测量 ID。构建时注入 `index.html` 的 `%REACT_APP_GA_MEASUREMENT_ID%` 占位 | `"G-XXXXXXX"`（**留空 = 彻底关闭统计**） |
 | `htmlTitle` | 浏览器标签页 `<title>`（注入 `%REACT_APP_SITE_TITLE%`） | `"MEOW's GALLERY | 大咪成长史"` |
-| `description` | `<meta name="description">`（注入 `%REACT_APP_SITE_DESCRIPTION%`） | `"…一只英短折耳猫的照片墙。"` |
+| `description` | `<meta name="description">`（注入 `%REACT_APP_SITE_DESCRIPTION%`） | `"…一只猫猫的照片墙。"` |
 | `manifestShortName` | PWA `manifest.json` 的 `short_name`（构建时在产物上原地改写） | `"MEOW"` |
 | `manifestName` | PWA `manifest.json` 的 `name` | `"DA-MEOW | 大咪成长史"` |
 
