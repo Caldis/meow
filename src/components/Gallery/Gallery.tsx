@@ -9,7 +9,8 @@ import Picture from '../Picture'
 import { AppContext } from 'App.context'
 import { GALLERY_DATA } from 'App.constant'
 import { track } from 'utils/analytics'
-import { t } from 'utils/i18n'
+import { t, resolveTitle } from 'utils/i18n'
+import { siteConfig } from 'config/site.config'
 import {
   DEFAULT_PICTURE_DRAG_TUNING,
   DEFAULT_PICTURE_HIGHLIGHT_TUNING,
@@ -272,7 +273,7 @@ const Gallery = ({ onLightboxChange }: GalleryProps) => {
     <main className={`${styles.gallery}${lightboxOpen ? ` ${styles.chromeHidden}` : ''}`}>
 
       <header className={`${styles.header}${lightboxOpen ? ` ${styles.headerHidden}` : ''}`}>
-        <h1 className={styles.title} onClick={handleTitleClick}>{t('app.title', lang)}</h1>
+        <h1 className={styles.title} onClick={handleTitleClick}>{resolveTitle(siteConfig.subject, lang)}</h1>
         <Tab
           value={viewMode}
           onChange={handleModeChange}

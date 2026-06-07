@@ -7,24 +7,8 @@
 type Dict = Record<string, string>
 
 const STRINGS: Record<string, Dict> = {
-  'app.title': {
-    zh: '大咪成长史',
-    en: "Meow's Story",
-    ja: 'ニャンの成長記',
-    ko: '냥이 성장기',
-    fr: "L'histoire de Miaou",
-    de: 'Miezis Geschichte',
-    es: 'La historia de Miau',
-    pt: 'A história do Miau',
-    it: 'La storia di Miao',
-    ru: 'История Мяу',
-    ar: 'قصة مياو',
-    hi: 'म्याऊ की कहानी',
-    th: 'เรื่องราวของเหมียว',
-    vi: 'Câu chuyện của Meo',
-    tr: "Miyav'ın Hikâyesi",
-    nl: 'Het verhaal van Miauw',
-  },
+  // (The page title now comes from the subject name + per-language templates —
+  // see resolveTitle below and src/config/site.config.ts.)
   // View modes — random (free scatter) / sequential (timeline) / stage (mosaic grid).
   'tab.random': {
     zh: '随心', en: 'Free', ja: '気まま', ko: '자유', fr: 'Libre', de: 'Frei',
@@ -238,4 +222,47 @@ export const t = (key: string, lang: string): string => {
   if (!dict) return key
   const l = (lang || 'en').toLowerCase()
   return dict[l] || dict[l.split('-')[0]] || dict.en || key
+}
+
+// ─── Page title templating ───────────────────────────────────────────────────
+// Engine-owned per-language title templates. A site supplies only the subject's
+// name (src/config/site.config.ts) and gets a localized title for free; an
+// explicit per-language `title` override wins when a title isn't a mechanical
+// "{name}'s Story". These templates + the 大咪 name map reproduce the exact
+// previous app.title values in all 16 languages.
+const TITLE_TEMPLATE: Dict = {
+  zh: '{name}成长史',
+  en: "{name}'s Story",
+  ja: '{name}の成長記',
+  ko: '{name} 성장기',
+  fr: "L'histoire de {name}",
+  de: '{name}s Geschichte',
+  es: 'La historia de {name}',
+  pt: 'A história do {name}',
+  it: 'La storia di {name}',
+  ru: 'История {name}',
+  ar: 'قصة {name}',
+  hi: '{name} की कहानी',
+  th: 'เรื่องราวของ{name}',
+  vi: 'Câu chuyện của {name}',
+  tr: "{name}'ın Hikâyesi",
+  nl: 'Het verhaal van {name}',
+}
+
+const pickLocale = (map: Record<string, string | undefined> | undefined, lang: string): string | undefined => {
+  if (!map) return undefined
+  const l = (lang || 'en').toLowerCase()
+  return map[l] ?? map[l.split('-')[0]] ?? map.en
+}
+
+export const resolveTitle = (
+  subject: { name: Record<string, string | undefined>; title?: Record<string, string | undefined> },
+  lang: string,
+): string => {
+  const authored = pickLocale(subject.title, lang)
+  if (authored) return authored
+  const name = pickLocale(subject.name, lang) ?? subject.name.en ?? Object.values(subject.name)[0] ?? ''
+  const l = (lang || 'en').toLowerCase()
+  const tpl = TITLE_TEMPLATE[l] ?? TITLE_TEMPLATE[l.split('-')[0]] ?? TITLE_TEMPLATE.en
+  return tpl.replace('{name}', name)
 }

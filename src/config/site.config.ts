@@ -16,6 +16,19 @@
 // SAME source. Edit site.config.json to retarget the domain / GA id.
 import buildConfig from './site.config.json'
 
+// Per-language string map: full tag (zh-cn) → primary subtag (zh) → en fallback.
+export type LocaleMap = Partial<Record<string, string>>
+
+export interface SubjectConfig {
+  // The subject's name per language (the cat: 大咪 / Meow / ニャン …). Drives the
+  // page title via the engine's per-language templates ("{name}'s Story"), so a
+  // fork can set just this and get all 16 languages for free.
+  name: LocaleMap
+  // Optional fully-authored per-language title that wins over the template — for
+  // titles that aren't a mechanical "{name}'s Story".
+  title?: LocaleMap
+}
+
 export interface DonateConfig {
   // Master switch. When false, no donate button renders.
   enabled: boolean
@@ -50,6 +63,8 @@ export interface DockConfig {
 }
 
 export interface SiteConfig {
+  // Who the gallery is about. The one thing a fork must set.
+  subject: SubjectConfig
   // GA4 measurement id. Empty string → analytics fully disabled. (The id is also
   // injected into public/index.html; keep them in sync — see SETUP docs.)
   ga4MeasurementId: string
@@ -62,6 +77,7 @@ export interface SiteConfig {
 // Fork-safe defaults: a copy of this with your own subject is the safe starting
 // point — nothing reaches the original author.
 export const BLANK_SITE_CONFIG: SiteConfig = {
+  subject: { name: { en: 'Your Subject' } },
   ga4MeasurementId: '',
   domain: '',
   donate: { enabled: false, paypalUrl: '', buyMeACoffeeUrl: '', alipayQr: '', wechatQr: '' },
@@ -70,6 +86,15 @@ export const BLANK_SITE_CONFIG: SiteConfig = {
 
 // ─── THIS SITE (大咪 · meow.caldis.me) — reproduces today's exact behavior ───
 export const siteConfig: SiteConfig = {
+  // The cat's name per language. With no `title` override, the engine templates
+  // reproduce the exact previous titles (大咪成长史 / Meow's Story / …).
+  subject: {
+    name: {
+      zh: '大咪', en: 'Meow', ja: 'ニャン', ko: '냥이', fr: 'Miaou', de: 'Miezi',
+      es: 'Miau', pt: 'Miau', it: 'Miao', ru: 'Мяу', ar: 'مياو', hi: 'म्याऊ',
+      th: 'เหมียว', vi: 'Meo', tr: 'Miyav', nl: 'Miauw',
+    },
+  },
   ga4MeasurementId: buildConfig.gaMeasurementId,
   domain: buildConfig.domain,
   donate: {
