@@ -38,5 +38,5 @@ description: 增量处理用户新提供的照片(单个文件或一个装满照
 ## 注意
 
 - **不要**在 `src/App.constant.ts` 里恢复 `assets.slice(0, length/2)`:那是旧版 react-scripts 下 require.context 会重复返回时的去重 hack,新版构建每个文件只出现一次,这行会**隐藏一半相册**。现已改为 `Array.from(new Set(assets))`。
-- 旧的 `src/assets/rename.js` + `clean-gps.js`(只做 jpg 改名 + 去 GPS、不压缩)已被本 skill 取代。
+- `src/assets/rename.js` + `clean-meta.js`(jpg 改名 + 抹敏感信息,不压缩;配合可选的 `scripts/optimize-photos.js` 压缩转 webp)是**模板自带的可移植照片管线**(纯 node 依赖,跨平台)。本 skill 是大咪本机基于 `cwebp` 的一步到位工作流——两者都可用,本机优先用本 skill。
 - 重复对**同一批**输入运行会产生 `.2` 序号副本,只对**新照片**运行即可。

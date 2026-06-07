@@ -1,117 +1,96 @@
-# 大咪成长史 · meow
+# meow · 照片墙模板
 
-> 一面献给折耳猫「大咪」的照片墙 —— 把一只猫的成长岁月做成可以把玩的网页。
+> 一面可把玩的照片墙 —— fork 下来、放上你自己的照片、改 **一个** 配置文件、即可部署上线。纯静态、零后端、托管在 GitHub Pages。
 
-🔗 **在线访问：https://meow.caldis.me**
+🔗 **在线示例（折耳猫「大咪」）：https://meow.caldis.me**
 
 ![React](https://img.shields.io/badge/React-17-61dafb?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-4.4-3178c6?logo=typescript&logoColor=white)
 ![SCSS Modules](https://img.shields.io/badge/SCSS-modules-cc6699?logo=sass&logoColor=white)
 ![GitHub Pages](https://img.shields.io/badge/deploy-GitHub%20Pages-222?logo=github&logoColor=white)
 
-51 张照片、零后端、纯静态，部署在 GitHub Pages 上。所有动效都尽量做到「物理感」与「胶片质感」。
+这是一个 **fork-and-fill 模板**：引擎（动画、视图、主题、国际化等可复用逻辑）和站点身份（你是谁、放谁的照片、链到哪、收不收打赏）被彻底拆开。你只需要编辑站点身份层，引擎原封不动。
+
+> 在线示例里的「大咪」是一只英短折耳猫，属于**示例内容**——`yarn setup` 向导（或手动清空 `src/assets/`）会把这些样例照片清掉，换成你自己的。
 
 ---
 
-## ✨ 功能特性
+## ✨ 功能
 
-- **三种浏览视图**，切换时卡片以 [FLIP](https://aerotwist.com/blog/flip-your-animations/) 动画平滑滑动到新布局，而非瞬移：
-  - **随心 (Free)** —— 随机散布、可拖拽、相互叠压的散落式照片堆
-  - **时光 (Timeline)** —— 按拍摄日期排列的时间线
-  - **拼图 (Mosaic)** —— 紧凑的瀑布流／马赛克网格
-- **重复点击当前视图的标签** 即翻转排序方向（正序 ⇄ 倒序），右侧排序图标的三条横杠会随之形变过渡。
-- **点击放大（Lightbox）**：图片原位展开（效果同 [react-zmage](https://github.com/Caldis/react-zmage)）；点击图片外部、或滚动滚轮（带防误触阈值）皆可退出；放大时顶栏与底部 dock 位移出屏 + crossfade，让照片独占舞台。
-- **明暗双模式**：暖色奶油浅色 / 沉稳暗色，默认跟随系统并记忆选择，首屏无闪烁。右上角切换按钮带 **太阳⇄月亮形变**，并联动 **整页圆形揭示（wipe）** 切换背景。
-- **平滑滚动**：桌面端为 wheel 驱动的虚拟平滑滚动；触屏端自动降级为原生惯性滚动。
-- **卡片微交互**：hover 视差倾斜 + 高光/镭射反光。
-- **底部 Dock**（iPadOS 风格）：作者其他作品外链（Mos / Zmage / 本仓库）+「喂胖大咪」打赏弹窗（PayPal / Buy Me a Coffee，简体中文访客额外显示支付宝 / 微信二维码）。
-- **16 种语言**：标题、标签、dock、打赏文案全部国际化，默认跟随浏览器语言。
-- **隐私**：发布前会从照片 EXIF 中移除 GPS 定位信息。
-- **GA4 埋点**：主题切换、排序、点击外链、打开打赏等关键交互均有事件上报。
-- **开发调试面板**（仅 dev，左下角，可折叠）：实时调节拖拽 / 高光 / 滚轮退出阈值等参数，并可切换页面语言。
+- **三种浏览视图**，切换时卡片以 [FLIP](https://aerotwist.com/blog/flip-your-animations/) 动画平滑滑动到新布局（而非瞬移）：随心散落 / 时间线 / 马赛克拼图。重复点击当前视图标签即翻转排序方向，右侧排序图标随之形变过渡。
+- **点击放大（Lightbox）**：图片原位展开，点击外部或滚轮（带防误触阈值）退出；放大时顶栏与底部 dock 位移出屏 + crossfade，让照片独占舞台。
+- **明暗双模式**：太阳⇄月亮**形变切换按钮**，联动整页**圆形揭示（circular reveal / wipe）**换肤；默认跟随系统、记忆选择、首屏无闪烁。
+- **平滑滚动**：桌面端为 wheel 驱动的虚拟平滑滚动，触屏端自动降级为原生惯性滚动。
+- **可选的底部 dock**：作者其他作品的交叉推广外链 + **打赏弹窗**（PayPal / Buy Me a Coffee，简体中文访客额外显示支付宝 / 微信二维码）。两者均可一键关闭。
+- **16 种语言标题**：只填一个名字，引擎按每种语言的模板生成标题（`{name}成长史` / `{name}'s Story` …）。
+- **GA4 埋点**：主题切换、排序、外链点击、打开打赏等关键交互均有事件上报（可留空彻底关闭）。
 
 ## 🛠 技术栈
 
-- **React 17 + TypeScript**，基于 Create React App（`react-scripts` 5）
-- **SCSS Modules** + 一套 CSS 变量令牌实现运行时换肤（`src/App.reset.scss`）
-- 照片通过 `require.context` 在构建期静态打包，**无后端、无数据库**
-- 字体：Instrument Serif + DM Sans（Google Fonts）
-- 动画：原生 WAAPI / CSS transition + FLIP，不依赖动画库
+React 17 + TypeScript（Create React App / `react-scripts` 5）· SCSS Modules + CSS 变量令牌运行时换肤 · 照片经 `require.context` 在构建期静态打包，**无后端、无数据库** · 动画基于原生 WAAPI / CSS transition + FLIP，不依赖动画库。
 
-## 🚀 本地开发
+## 🚀 三步上手（fork-and-fill）
+
+### 1. 用此仓库作为模板
+
+点 GitHub 上的 **Use this template** 生成你自己的仓库，然后 clone 下来：
 
 ```bash
+git clone <你的仓库地址> && cd <仓库目录>
 yarn install
-yarn start          # 启动 dev server（http://localhost:3000）
 ```
 
-> 包管理器使用 yarn（见 `packageManager` 字段），用 npm 亦可。
+### 2. 放照片 + 跑照片脚本
 
-## 🖼 添加 / 管理照片
-
-照片源文件放在 `src/assets/` 目录下。代码靠**文件名**解析日期与尺寸，格式为：
-
-```
-YYYY-MM-DD.宽×高.扩展名          例如  2017-09-06.2049×1537.webp
-            └ 全角乘号 ×
-```
-
-把新照片（jpg/jpeg）放进 `src/assets/` 后，依次执行两个脚本完成规范化：
+把你的照片（jpg/jpeg）丢进 `src/assets/`，依次规范化：
 
 ```bash
-yarn build:photo-rename      # 读取 EXIF 拍摄日期 + 图片尺寸，重命名为上面的格式
-yarn build:photo-clean-gps   # 抹掉 EXIF 里的 GPS 定位信息（隐私）
+yarn build:photo-rename      # 读 EXIF 拍摄日期 + 图片尺寸，重命名为约定格式
+yarn build:photo-clean-meta  # 抹掉敏感信息：GPS 定位 + 设备/拍摄者标识（隐私）
 ```
 
-- `build:photo-rename`（`src/assets/rename.js`）：从 EXIF `DateTimeOriginal` 取拍摄日期，配合 `image-size` 读出宽高；无日期则回退用原文件名作前缀。
-- `build:photo-clean-gps`（`src/assets/clean-gps.js`）：用 `piexif` 删除 GPS 段后写回。
+> ⚠️ **文件名约定（务必遵守）**：`YYYY-MM-DD.宽×高.扩展名`，例 `2017-09-06.2049×1537.webp`。尺寸分隔符是**全角乘号 `×`（U+00D7）**，不是 ascii 的 `x`——手工用 `x` 命名会**静默解析失败**。`build:photo-rename` 自动产出正确格式。日期会作为照片的说明文字显示。
 
-> 重命名后建议把大图压缩 / 转为 `.webp` 以减小体积（解析器只认 `日期.宽×高` 前缀，扩展名随意）。
+### 3. 改配置 + 部署
 
-## 📦 构建与部署
-
-站点托管在 **GitHub Pages**，Source = `master` 分支的 **`/docs`** 目录（无 CI workflow，Pages 直接 serve `docs/`）。
+编辑站点身份（你的名字、域名、GA、打赏、dock）：
 
 ```bash
-yarn build:code     # = react-scripts build，然后把 build/ 的产物搬进 docs/
+yarn setup          # 交互式向导：生成 site.config.json + 清空样例照片（推荐）
+# 或手动编辑 src/config/site.config.json 与 src/config/site.config.ts
 ```
 
-⚠️ **注意**：请用 `build:code`，**不要**用 `npm run build`（它会先跑未定义的 `build:photo` 而失败）。
-
-发布流程：
+构建并部署到 GitHub Pages：
 
 ```bash
-yarn build:code
-git add docs                       # 连同源码一起提交
-git commit -m "chore: build docs for deployment"
-git push origin master             # 推送后 GitHub Pages 自动重新部署（CDN ~30s 生效）
+yarn build:code     # ⚠️ 用 build:code，不要用 npm run build
+git add docs && git commit -m "deploy" && git push
+# 推送后 GitHub Pages（Source = master 分支 /docs）自动重新部署（~30s）
 ```
 
-`scripts/build-code.js` 只清理它自己生成的产物（`index.html` / `static` / `manifest.json` 等），`docs/CNAME` 等自定义文件会被保留。
+> 详细分步见 **[SETUP.md](./SETUP.md)**。
 
-## 🗂 项目结构
+## 🧩 改什么 / 不改什么
 
-```
-src/
-├─ assets/                 照片源文件 + rename.js / clean-gps.js 处理脚本
-├─ App.constant.ts         require.context 加载照片 + 解析文件名 → GALLERY_DATA
-├─ App.reset.scss          CSS 变量主题令牌（:root 暗色 / html.light 浅色）
-├─ components/
-│  ├─ Gallery/             主画廊：三视图布局、FLIP、虚拟/原生滚动、调试面板
-│  ├─ Picture/             单张卡片：lightbox、拖拽、视差、高光
-│  ├─ Tab/                 顶部视图切换标签（含排序指示器）
-│  ├─ Footer/              底部 dock + 项目外链
-│  ├─ Donate/              「喂胖大咪」打赏弹窗
-│  ├─ ThemeToggle/         明暗切换按钮（形变图标 + 圆形揭示）
-│  └─ Parallax/            hover 视差
-├─ utils/
-│  ├─ i18n.ts              16 语言文案表
-│  └─ analytics.ts         GA4 事件封装
-scripts/
-└─ build-code.js           构建并把产物搬进 docs/
-docs/                       构建产物（GitHub Pages 部署目录，提交进仓库）
-```
+引擎与站点身份的边界一目了然——**你只动右列**：
+
+| 层 | 目录 / 文件 | fork 是否编辑 |
+| --- | --- | --- |
+| **引擎**（可复用库） | `src/components/`、`src/style/`、`src/utils/`、hooks、视图/FLIP/滚动/lightbox/主题逻辑 | ❌ 不动 |
+| **站点身份** | `src/config/site.config.json` + `site.config.ts`（**唯一的个性化入口**） | ✅ 编辑 |
+| | `src/site/Dock/`（你的底部 dock 内容） | ✅ 可选 |
+| | `src/assets/`（你的照片） | ✅ 替换 |
+| | `public/donate/`、`public/projects/`（二维码 / 图标）、favicon / logo | ✅ 替换 |
+
+**单一配置面**：几乎所有个性化都集中在 `src/config/site.config.*` 一处。
+
+**防泄漏的空白默认值**：`site.config.ts` 导出 `BLANK_SITE_CONFIG`——打赏 / dock 关闭、GA / domain 留空。以它为起点，**一个未经修改的 fork 绝不会把打赏、统计、交叉推广点击发给原作者**。
+
+## 📚 文档
+
+- **[SETUP.md](./SETUP.md)** —— 完整 fork 指南：配置字段速查表、照片流水线、品牌替换、部署与上线前清单。
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** —— 想改引擎时读：引擎 vs 站点边界、配置注入流程、各子系统说明与文件指引。
 
 ---
 
-*Made with ❤️ for 大咪.*
+*基于 ❤️ 与一只叫大咪的折耳猫。*

@@ -29,10 +29,12 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "setup": "node ./scripts/setup.js",
     "build:code": "node ./scripts/build-code.js",
     "build:photo-rename": "node ./src/assets/rename.js",
-    "build:photo-clean-gps": "node ./src/assets/clean-gps.js",
-    "build": "npm run build:photo && npm run build:code",
+    "build:photo-clean-meta": "node ./src/assets/clean-meta.js",
+    "build:photo-optimize": "node ./scripts/optimize-photos.js",
+    "build": "npm run build:code",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

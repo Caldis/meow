@@ -1,5 +1,8 @@
 {
   "domain": "meow.caldis.me",
   "gaMeasurementId": "G-4B4K8TG1T3",
-  "htmlTitle": "MEOW's GALLERY | 大咪成长史"
+  "htmlTitle": "MEOW's GALLERY | 大咪成长史",
+  "description": "大咪成长史 —— 一只英短折耳猫的照片墙。",
+  "manifestShortName": "MEOW",
+  "manifestName": "DA-MEOW | 大咪成长史"
 }

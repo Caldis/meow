@@ -39,6 +39,7 @@ try {
       ...process.env,
       REACT_APP_GA_MEASUREMENT_ID: siteBuildConfig.gaMeasurementId || '',
       REACT_APP_SITE_TITLE: siteBuildConfig.htmlTitle || '',
+      REACT_APP_SITE_DESCRIPTION: siteBuildConfig.description || '',
     },
   })
 } catch (err) {
@@ -84,6 +85,21 @@ try {
       } else {
         fs.copyFileSync(srcPath, destPath)
       }
+    }
+  }
+
+  // 用 config 的名称改写 manifest.json(PWA 安装名)。CRA 不插值 manifest,故在
+  // 构建产物上原地替换 short_name/name,其余(图标/颜色)保持不变。
+  const manifestSrc = path.join(buildPath, 'manifest.json')
+  if (fs.existsSync(manifestSrc) && (siteBuildConfig.manifestShortName || siteBuildConfig.manifestName)) {
+    try {
+      const manifest = JSON.parse(fs.readFileSync(manifestSrc, 'utf8'))
+      if (siteBuildConfig.manifestShortName) manifest.short_name = siteBuildConfig.manifestShortName
+      if (siteBuildConfig.manifestName) manifest.name = siteBuildConfig.manifestName
+      fs.writeFileSync(manifestSrc, JSON.stringify(manifest, null, 2) + '\n')
+      console.log('已按 config 改写 manifest 名称')
+    } catch (e) {
+      console.warn('改写 manifest 失败(跳过):', e.message)
     }
   }
 
