@@ -14,14 +14,8 @@ import { t } from 'utils/i18n'
 // Simplified-Chinese visitors. PayPal/BMC reach the same creator.
 
 const PUB = process.env.PUBLIC_URL || ''
-const PAYPAL_URL = 'https://www.paypal.me/mosapp'
-const BMC_URL = 'https://buymeacoffee.com/caldis'
 
 type QrChannel = 'alipay' | 'wechat'
-const QR_SOURCES: Record<QrChannel, string> = {
-  alipay: `${PUB}/donate/alipay-qr.png`,
-  wechat: `${PUB}/donate/wechat-qr.png`,
-}
 const CHANNEL_LABEL: Record<QrChannel, string> = { alipay: '支付宝', wechat: '微信' }
 
 // Alipay/WeChat are mainland-only channels — only surface the QR for
@@ -47,17 +41,24 @@ const CloseIcon = () => (
 interface Props {
   open: boolean
   onClose: () => void
+  // Donate targets — supplied by the owner via src/config/site.config.ts so this
+  // component stays generic (no hardcoded accounts).
+  paypalUrl: string
+  buyMeACoffeeUrl: string
+  alipayQr: string  // fully-resolved public URL
+  wechatQr: string
 }
 
-const INTERNATIONAL = [
-  { id: 'paypal', href: PAYPAL_URL, label: 'PayPal', icon: `${PUB}/donate/paypal.webp`, h: 18 },
-  { id: 'bmc', href: BMC_URL, label: 'Buy Me a Coffee', icon: `${PUB}/donate/bmc.svg`, h: 26 },
-]
-
-export const DonateModal = ({ open, onClose }: Props) => {
+export const DonateModal = ({ open, onClose, paypalUrl, buyMeACoffeeUrl, alipayQr, wechatQr }: Props) => {
   const { lang } = useContext(AppContext)
   const [channel, setChannel] = useState<QrChannel>('alipay')
   const showCnQr = isSimplifiedChinese(lang)
+
+  const INTERNATIONAL = [
+    { id: 'paypal', href: paypalUrl, label: 'PayPal', icon: `${PUB}/donate/paypal.webp`, h: 18 },
+    { id: 'bmc', href: buyMeACoffeeUrl, label: 'Buy Me a Coffee', icon: `${PUB}/donate/bmc.svg`, h: 26 },
+  ]
+  const QR_SOURCES: Record<QrChannel, string> = { alipay: alipayQr, wechat: wechatQr }
 
   // Keep the modal mounted through its exit animation: when `open` flips false
   // we play the closing animation, then unmount after it finishes.
