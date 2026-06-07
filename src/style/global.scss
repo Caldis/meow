@@ -15,3 +15,17 @@ $darkColor: #141210;
 // Typography
 $fontDisplay: 'Instrument Serif', 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', serif;
 $fontBody: 'DM Sans', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+// ── Chrome retreat ──────────────────────────────────────────────────────────
+// One mechanism for the floating chrome (header, dock, theme toggle): when the
+// lightbox opens they all translate FULLY off their nearest screen edge and
+// crossfade out together. `chromeRetreat` sets the shared transition; pass each
+// element's off-screen transform to `chromeHidden`.
+@mixin chromeRetreat {
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease-out;
+}
+@mixin chromeHidden($offscreen) {
+  transform: $offscreen;
+  opacity: 0;
+  pointer-events: none;
+}

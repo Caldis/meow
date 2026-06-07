@@ -187,6 +187,7 @@ const Gallery = ({ onLightboxChange }: GalleryProps) => {
   // its default. handleClose is defined further down, so bridge it through a ref
   // to hand the scroll hook a stable callback.
   const [wheelExitThreshold, setWheelExitThreshold] = useState(DEFAULT_WHEEL_EXIT_THRESHOLD)
+  const [debugCollapsed, setDebugCollapsed] = useState(true)
   const handleCloseRef = useRef<() => void>(() => {})
   const requestLightboxExit = useCallback(() => handleCloseRef.current(), [])
 
@@ -268,7 +269,7 @@ const Gallery = ({ onLightboxChange }: GalleryProps) => {
   }), [lang])
 
   return (
-    <main className={styles.gallery}>
+    <main className={`${styles.gallery}${lightboxOpen ? ` ${styles.chromeHidden}` : ''}`}>
 
       <header className={`${styles.header}${lightboxOpen ? ` ${styles.headerHidden}` : ''}`}>
         <h1 className={styles.title} onClick={handleTitleClick}>{t('app.title', lang)}</h1>
@@ -313,6 +314,9 @@ const Gallery = ({ onLightboxChange }: GalleryProps) => {
           style={lightboxIndex !== null ? { top: expandedScroll, height: screenSize.height } : undefined}
           onClick={handleClose}
         />
+
+        {/* Gives the native (touch) scroller its scroll height; invisible on desktop. */}
+        <div className={styles.scrollSpacer} style={{ height: contentHeight }} aria-hidden="true" />
       </div>
 
       {maxScroll > 0 && (
@@ -324,10 +328,21 @@ const Gallery = ({ onLightboxChange }: GalleryProps) => {
       {IS_DEV && (
         <aside className={styles.debugPanel}>
           <div className={styles.debugHeader}>
-            <strong className={styles.debugTitle}>Card Debug</strong>
-            <button className={styles.debugReset} type="button" onClick={resetDebugTuning}>重置</button>
+            <button
+              className={styles.debugToggle}
+              type="button"
+              onClick={() => setDebugCollapsed((c) => !c)}
+              aria-expanded={!debugCollapsed}
+            >
+              <span className={`${styles.debugChevron}${debugCollapsed ? '' : ` ${styles.debugChevronOpen}`}`} aria-hidden="true">▸</span>
+              <strong className={styles.debugTitle}>Card Debug</strong>
+            </button>
+            {!debugCollapsed && (
+              <button className={styles.debugReset} type="button" onClick={resetDebugTuning}>重置</button>
+            )}
           </div>
 
+          {!debugCollapsed && (<>
           <div className={styles.debugSection}>
             <strong className={styles.debugSectionTitle}>高光</strong>
 
@@ -488,6 +503,7 @@ const Gallery = ({ onLightboxChange }: GalleryProps) => {
               </select>
             </label>
           </div>
+          </>)}
         </aside>
       )}
 

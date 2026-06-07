@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { throttledUpdateTargetRectCenter } from 'components/Parallax/Parallax.constant'
 
 const LERP = 0.04
@@ -29,11 +29,29 @@ export function useCustomScroll(
   const lockedWheelAccum = useRef(0)
   const lockedWheelAt = useRef(0)
 
+  // Touch devices use the browser's own (momentum) scrolling — the transform-based
+  // virtual scroll only listens to `wheel`, which never fires on touch, so the
+  // page was unscrollable. In touch mode the scroller is a native overflow:auto
+  // container and this hook just keeps the parallax in sync.
+  const isTouch = useMemo(
+    () => typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(pointer: coarse)').matches,
+    [],
+  )
+
   const maxScroll = Math.max(0, contentHeight - viewportHeight)
   const thumbH = maxScroll > 0 ? Math.max(30, (viewportHeight / contentHeight) * viewportHeight) : 0
   const trackRange = viewportHeight - thumbH
 
   useEffect(() => {
+    // Touch: let the native scroller scroll; just refresh the parallax anchor.
+    if (isTouch) {
+      const scroller = scrollerRef.current
+      if (!scroller) return
+      const onScroll = () => throttledUpdateTargetRectCenter()
+      scroller.addEventListener('scroll', onScroll, { passive: true })
+      return () => scroller.removeEventListener('scroll', onScroll)
+    }
+
     const apply = () => {
       if (scrollerRef.current) {
         scrollerRef.current.style.transform = `translateY(${-current.current}px)`
@@ -131,20 +149,32 @@ export function useCustomScroll(
       document.removeEventListener('mouseup', onUp)
       if (raf.current) { cancelAnimationFrame(raf.current); raf.current = 0 }
     }
-  }, [scrollerRef, thumbRef, maxScroll, viewportHeight, thumbH, trackRange])
+  }, [isTouch, scrollerRef, thumbRef, maxScroll, viewportHeight, thumbH, trackRange])
 
   const scrollTo = useCallback((y: number) => {
-    target.current = Math.max(0, Math.min(maxScroll, y))
+    const clamped = Math.max(0, Math.min(maxScroll, y))
+    if (isTouch) {
+      scrollerRef.current?.scrollTo({ top: clamped, behavior: 'smooth' })
+      return
+    }
+    target.current = clamped
     startRef.current()
-  }, [maxScroll])
+  }, [isTouch, maxScroll, scrollerRef])
 
   const setScrollLocked = useCallback((v: boolean) => {
     lockedRef.current = v
     // Start each lightbox session with a clean accumulator.
     lockedWheelAccum.current = 0
     lockedWheelAt.current = 0
-  }, [])
-  const getCurrentScroll = useCallback(() => current.current, [])
+    // Touch: lock the native scroller while the lightbox is open.
+    if (isTouch && scrollerRef.current) {
+      scrollerRef.current.style.overflowY = v ? 'hidden' : ''
+    }
+  }, [isTouch, scrollerRef])
+  const getCurrentScroll = useCallback(() => {
+    if (isTouch) return scrollerRef.current?.scrollTop ?? 0
+    return current.current
+  }, [isTouch, scrollerRef])
 
   return { scrollTo, maxScroll, setScrollLocked, getCurrentScroll }
 }

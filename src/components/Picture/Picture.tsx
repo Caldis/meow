@@ -459,7 +459,10 @@ const Picture = React.memo(({
   const baseTop = (top ?? 0) + dragOffset.y
   let pictureTransform: string
   if (isExpanded && expandedScroll !== undefined) {
-    const scale = Math.min((screenSize.width - 80) / cardWidth, (screenSize.height - 80) / cardHeight)
+    // Tighter viewport margin on phones so the enlarged photo fills more of the
+    // small screen (40px/side on desktop drops to 14px/side on mobile).
+    const lightboxMargin = screenSize.width < 600 ? 28 : 80
+    const scale = Math.min((screenSize.width - lightboxMargin) / cardWidth, (screenSize.height - lightboxMargin) / cardHeight)
     const tx = screenSize.width / 2 - cardWidth / 2 - baseLeft
     const ty = screenSize.height / 2 - cardHeight / 2 + expandedScroll - baseTop
     pictureTransform = `translate(${tx}px, ${ty}px) scale(${scale}) rotate(0deg)`

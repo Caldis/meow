@@ -1,0 +1,79 @@
+@import "../../style/global";
+
+/* Fixed top-right theme switch. Glass button that adapts to the active theme;
+   the circular reveal animation originates from this button's center. */
+.toggle {
+  position: fixed;
+  top: clamp(14px, 2.6vh, 26px);
+  right: clamp(14px, 1.8vw, 28px);
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid rgba(var(--hairline), 0.16);
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--text);
+  background: rgba(var(--glass), 0.5);
+  box-shadow:
+    0 6px 18px rgba(10, 8, 6, 0.3),
+    inset 0 1px 0 rgba(255, 250, 245, 0.06);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  // Shared retreat transition (also covers hover/press transform).
+  @include chromeRetreat;
+
+  svg {
+    width: 19px;
+    height: 19px;
+    display: block;
+    overflow: visible; // let the rays reach past the viewBox edge
+  }
+
+  &:hover { transform: scale(1.08); }
+  &:active { transform: scale(0.95); transition-duration: 0.1s; }
+  &:focus-visible { outline: none; border-color: var(--accent); }
+}
+
+/* ─── Sun ⇄ Moon morph ─────────────────────────────────────────────────────
+   Default (no .iconMoon) = SUN: full disc, rays extended. The morph runs on the
+   same easing/length as the page wipe so the button and the background reveal
+   feel like one gesture. */
+$morph-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+.icon {
+  display: block;
+  overflow: visible; // let the rays reach past the viewBox edge
+}
+
+.bite {
+  // Parked far off the disc → no bite → full sun disc. (dist 14.1 > r6+r7=13)
+  transform: translate(10px, -10px);
+  transition: transform 0.55s $morph-ease;
+}
+
+.rays {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.55s $morph-ease, opacity 0.4s ease-out;
+}
+
+.iconMoon {
+  // MOON: slide the bite over the disc to carve a crescent; retract + fade the rays.
+  .bite { transform: translate(4px, -3px); }
+  .rays { transform: scale(0.35) rotate(-45deg); opacity: 0; }
+}
+
+/* Lightbox open: slide the switch fully off the top edge and fade. */
+.toggleHidden {
+  @include chromeHidden(translateY(calc(-100% - 40px)));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toggle { transition: opacity 0.3s ease-out; }
+  .toggle:hover, .toggle:active { transform: none; }
+  // Snap the glyph instead of morphing.
+  .bite, .rays { transition: none; }
+}

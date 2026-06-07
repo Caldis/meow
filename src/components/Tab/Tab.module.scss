@@ -11,15 +11,16 @@
   .item {
     cursor: pointer;
     padding: 4px 12px;
-    color: rgba(236, 229, 219, 0.3);
+    color: rgba(var(--text-dim), 0.3);
     font-family: $fontBody;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 700;
     letter-spacing: 0.18em;
+    white-space: nowrap;
     transition: color 0.4s ease-out;
   }
   .itemActive {
-    color: rgba(236, 229, 219, 0.88);
+    color: rgba(var(--text-dim), 0.88);
   }
 
   // Rendered on every item so its width is always reserved — activating a tab
@@ -42,7 +43,7 @@
     bottom: 0;
     height: 1.5px;
     border-radius: 1px;
-    background-color: $accentWarm;
+    background-color: var(--accent);
     transition: all 0.5s cubic-bezier(0.3, 0, 0.03, 1);
   }
 }

@@ -1,5 +1,46 @@
 @import "./style/global";
 
+/* ─── Theme tokens ────────────────────────────────────────────────────────
+   Runtime-switchable colors. Dark is the default (:root); the `light` class on
+   <html> (toggled by the theme switch) overrides to the warm cream palette.
+   Triplet tokens (--scrim, --glass, --hairline, --text-dim) are raw "r, g, b"
+   so components can wrap them: rgba(var(--glass), 0.6). */
+:root {
+  --bg: #141210;
+  --bg-warm: #1c1816;
+  --text: #ece5db;
+  --text-muted: #8a7e72;
+  --text-dim: 236, 229, 219;
+  --scrim: 20, 18, 16;
+  --glass: 42, 36, 31;
+  --glass-soft: 28, 24, 21;
+  --hairline: 236, 229, 219;
+  --accent: #c49a6c;
+  --surface: #2a2521;
+  --surface-dim: #201c18;
+  --donate-base: rgba(40, 33, 27, 0.5);
+  --card-border: rgba(236, 229, 219, 0.1);
+  --title-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
+}
+
+html.light {
+  --bg: #f2ebdf;
+  --bg-warm: #faf6ef;
+  --text: #322c25;
+  --text-muted: #6b6051;
+  --text-dim: 50, 44, 37;
+  --scrim: 245, 240, 232;
+  --glass: 250, 247, 242;
+  --glass-soft: 252, 250, 246;
+  --hairline: 92, 78, 60;
+  --accent: #b07d49;
+  --surface: #faf7f2;
+  --surface-dim: #eee9e2;
+  --donate-base: rgba(176, 125, 73, 0.16);
+  --card-border: transparent;
+  --title-shadow: 0 1px 10px rgba(255, 255, 252, 0.55);
+}
+
 /* Box sizing rules */
 *,
 *::before,
@@ -82,8 +123,8 @@ html, body {
   height: 100%;
 }
 body {
-  background: radial-gradient(ellipse at 50% 0%, $bgColorWarm 0%, $bgColor 70%) fixed;
-  background-color: $bgColor;
+  background: radial-gradient(ellipse at 50% 0%, var(--bg-warm) 0%, var(--bg) 70%) fixed;
+  background-color: var(--bg);
 }
 button {
   user-select: none;

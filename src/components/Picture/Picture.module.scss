@@ -56,14 +56,21 @@
 
   .imageWrapper {
     position: relative;
-    background-color: #faf7f2;
+    background-color: var(--surface);
     border-radius: 6px;
+    // Hairline edge — visible only in dark mode (--card-border transparent in
+    // light), where the drop shadow barely reads against the dark background.
+    border: 1px solid var(--card-border);
     box-shadow:
       0 2px 8px rgba(10, 8, 6, 0.25),
       0 8px 24px rgba(10, 8, 6, 0.15);
     transition:
       box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      // Theme switch: crossfade the matte colour so the 51 card frames don't pop
+      // ahead of the background wipe sweeping past them.
+      background-color 0.55s ease-out,
+      border-color 0.55s ease-out;
 
     &.imageWrapperShuffle {
       animation: shuffleFront 0.24s cubic-bezier(0.23, 1, 0.32, 1);
@@ -84,7 +91,7 @@
       user-select: none;
       object-fit: cover;
       border-radius: 4px;
-      background-color: #eee9e2;
+      background-color: var(--surface-dim);
       // The <img> only ever changes its inline width/height (from rect). Under
       // `transition: all` that animated the box geometry => layout reflow + bitmap
       // re-raster every frame for 3s. Allowlist excludes width/height so the size
@@ -100,11 +107,12 @@
       display: block;
       font-family: 'Instrument Serif', serif;
       font-size: 12px;
-      color: #8a7e72;
+      color: var(--text-muted);
       letter-spacing: 0.06em;
       margin-left: 2px;
       user-select: none;
       backface-visibility: hidden;
+      transition: color 0.55s ease-out;
     }
 
     .specular,

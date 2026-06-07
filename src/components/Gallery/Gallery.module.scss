@@ -3,6 +3,11 @@
 .gallery {
   flex-grow: 1;
   position: relative;
+  // Raise the whole card grid into a positive stacking level so the theme-switch
+  // ripple overlay (appended to <body> at z-index:0) slots BELOW the photos but
+  // ABOVE the page background — the photos stay visible through the wipe, no void.
+  // See ThemeToggle.tsx for the paired half of this mechanism.
+  z-index: 1;
   height: 100vh;
   overflow: hidden;
 
@@ -15,12 +20,13 @@
     height: 160px;
     background: linear-gradient(
       to bottom,
-      rgba(20, 18, 16, 0.92) 0%,
-      rgba(20, 18, 16, 0.5) 55%,
+      rgba(var(--scrim), 0.92) 0%,
+      rgba(var(--scrim), 0.5) 55%,
       transparent 100%
     );
     z-index: 99;
     pointer-events: none;
+    transition: opacity 0.5s ease-out;
   }
 
   // Dark radial scrim to lift the header text's contrast over busy photos.
@@ -37,19 +43,49 @@
     height: 420px;
     background: radial-gradient(
       circle 400px at 50% 0,
-      rgba(10, 8, 7, 0.85) 0%,
-      rgba(10, 8, 7, 0.6) 38%,
-      rgba(10, 8, 7, 0.24) 66%,
+      rgba(var(--scrim), 0.9) 0%,
+      rgba(var(--scrim), 0.62) 38%,
+      rgba(var(--scrim), 0.26) 66%,
       transparent 86%
     );
     z-index: 99;
     pointer-events: none;
+    transition: opacity 0.5s ease-out;
+  }
+
+  // Lightbox open: fade the top scrim + dome so they don't sit over the photo.
+  &.chromeHidden::before,
+  &.chromeHidden::after {
+    opacity: 0;
   }
 }
 
 .scroller {
   position: relative;
   will-change: transform;
+}
+
+// Touch devices: the scroller becomes a real (momentum) scroll container instead
+// of the wheel-driven virtual scroll, which can't run on touch.
+@media (pointer: coarse) {
+  .scroller {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    will-change: scroll-position;
+  }
+  // Native scrollbar replaces the custom thumb.
+  .scrollbar {
+    display: none;
+  }
+}
+
+// Invisible spacer that gives the scroller its real content height (the cards are
+// absolutely positioned, so they don't establish it) — needed for native scroll.
+.scrollSpacer {
+  width: 1px;
+  pointer-events: none;
 }
 
 .header {
@@ -63,17 +99,13 @@
   align-items: center;
   padding-top: clamp(18px, 3.5vh, 32px);
   gap: 10px;
-  // Crossfade with the lightbox: retreat upward + fade as the overlay (0.5s)
-  // darkens. Transform/opacity only — no layout cost.
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease-out;
+  // Crossfade with the lightbox: retreat upward + fade as the overlay darkens.
+  @include chromeRetreat;
 }
 
 // Lightbox open: header slides fully up past the top edge and fades out.
-// -100% clears its own height; the extra margin pushes it entirely off-screen.
 .headerHidden {
-  transform: translate(-50%, calc(-100% - 24px));
-  opacity: 0;
-  pointer-events: none;
+  @include chromeHidden(translate(-50%, calc(-100% - 24px)));
 }
 
 .title {
@@ -81,12 +113,12 @@
   font-size: clamp(16px, 2.5vw, 22px);
   font-weight: 400;
   letter-spacing: 0.35em;
-  color: $textLight;
+  color: var(--text);
   white-space: nowrap;
   opacity: 0.85;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
+  text-shadow: var(--title-shadow);
   cursor: pointer;
-  transition: opacity 0.3s ease-out;
+  transition: opacity 0.3s ease-out, color 0.55s ease-out;
   &:hover { opacity: 1; }
 }
 
@@ -142,7 +174,7 @@
   right: 2px;
   width: 3px;
   border-radius: 2px;
-  background-color: rgba(236, 229, 219, 0.15);
+  background-color: rgba(var(--hairline), 0.15);
   will-change: transform;
   transition: width 0.2s ease-out, background-color 0.2s ease-out, right 0.2s ease-out;
   cursor: grab;
@@ -150,10 +182,10 @@
   &:hover, &:active {
     width: 5px;
     right: 1px;
-    background-color: rgba(236, 229, 219, 0.35);
+    background-color: rgba(var(--hairline), 0.35);
   }
   &:active {
-    background-color: rgba(236, 229, 219, 0.5);
+    background-color: rgba(var(--hairline), 0.5);
     cursor: grabbing;
   }
 }
@@ -201,6 +233,28 @@
   font-size: 12px;
   cursor: pointer;
   padding: 0;
+}
+
+.debugToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.debugChevron {
+  display: inline-block;
+  font-size: 10px;
+  line-height: 1;
+  color: rgba(236, 229, 219, 0.55);
+  transition: transform 0.25s ease-out;
+}
+
+.debugChevronOpen {
+  transform: rotate(90deg);
 }
 
 .debugControl {

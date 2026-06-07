@@ -11,6 +11,19 @@
 
     gtag('config', 'G-4B4K8TG1T3');
   </script>
+  <!-- Theme: apply the saved choice (or, on first visit, the system preference)
+       before first paint so there's no flash of the wrong theme. -->
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('meow-theme');
+        var light = stored
+          ? stored === 'light'
+          : (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+        if (light) document.documentElement.classList.add('light');
+      } catch (e) {}
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>

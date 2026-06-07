@@ -6,6 +6,7 @@ import styles from './App.module.scss'
 // Components
 import Gallery from './components/Gallery'
 import Footer from './components/Footer'
+import ThemeToggle from './components/ThemeToggle'
 // Utils
 import { AppContext } from './App.context'
 import { useScreenSize } from './App.hook'
@@ -46,6 +47,7 @@ function App () {
       <div className={styles.app}>
         <Gallery onLightboxChange={setLightboxOpen}/>
         <Footer hidden={lightboxOpen}/>
+        <ThemeToggle hidden={lightboxOpen}/>
       </div>
     </AppContext.Provider>
   )

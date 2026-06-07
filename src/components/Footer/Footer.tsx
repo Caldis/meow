@@ -17,6 +17,11 @@ interface Project {
   taglineKey: string
   icon: string
   href: string
+  // Optional shrink for full-bleed logos that lack their own inner padding, so
+  // they sit with the same breathing room as the padded app-style icons.
+  iconScale?: number
+  // Optional extra small line in the tooltip (i18n key).
+  noteKey?: string
 }
 
 const PROJECTS: Project[] = [
@@ -25,6 +30,7 @@ const PROJECTS: Project[] = [
     name: 'Mos',
     taglineKey: 'mos.tagline',
     icon: `${PUB}/projects/mos.png`,
+    noteKey: 'mos.note',
     // Official site. GA4-standard UTM tags so Mos's analytics attributes the
     // visit to meow (rel="noreferrer" strips the HTTP Referer, so the source is
     // carried in the URL): source = origin host, medium = referral, campaign =
@@ -36,8 +42,23 @@ const PROJECTS: Project[] = [
     name: 'Zmage',
     taglineKey: 'zmage.tagline',
     icon: `${PUB}/projects/zmage.png`,
+    // The rz logo fills its canvas edge-to-edge; shrink it for even spacing.
+    iconScale: 0.8,
+    noteKey: 'zmage.note',
     // Same GA4-standard UTM attribution as Mos above.
     href: 'https://zmage.caldis.me/?utm_source=meow.caldis.me&utm_medium=referral&utm_campaign=cross-promo&utm_content=footer-dock',
+  },
+  {
+    id: 'meow',
+    name: 'Meow',
+    taglineKey: 'meow.tagline',
+    icon: `${PUB}/projects/meow.webp`,
+    // The cat photo is full-bleed; shrink it so it sits with the same inner
+    // breathing room as Mos's padded logo and the scaled-down Zmage mark.
+    iconScale: 0.8,
+    noteKey: 'meow.note',
+    // This project's own repo (GitHub — no analytics, so no UTM tags).
+    href: 'https://github.com/Caldis/meow',
   },
 ]
 
@@ -69,6 +90,7 @@ const Footer = ({ hidden = false }: FooterProps) => {
       <div className={`${styles.scrim}${hidden ? ` ${styles.scrimHidden}` : ''}`} aria-hidden="true" />
 
       <footer className={`${styles.footer}${mounted ? ` ${styles.footerIn}` : ''}${hidden ? ` ${styles.footerHidden}` : ''}`}>
+        <p className={styles.invite}>{t('dock.invite', lang)}</p>
         <nav className={styles.dock} aria-label="项目与支持">
           <ul className={styles.apps}>
             {PROJECTS.map((p) => {
@@ -86,8 +108,9 @@ const Footer = ({ hidden = false }: FooterProps) => {
                   <span className={styles.tip}>
                     <strong>{p.name}</strong>
                     <small>{tagline}</small>
+                    {p.noteKey ? <small className={styles.tipNote}>{t(p.noteKey, lang)}</small> : null}
                   </span>
-                  <img className={styles.appIcon} src={p.icon} alt={p.name} draggable={false} />
+                  <img className={styles.appIcon} src={p.icon} alt={p.name} draggable={false} style={p.iconScale ? { transform: `scale(${p.iconScale})` } : undefined} />
                   <span className={styles.gloss} aria-hidden="true" />
                 </a>
               </li>
