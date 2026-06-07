@@ -62,6 +62,25 @@ const STRINGS: Record<string, Dict> = {
     tr: 'Pürüzsüz fare kaydırma',
     nl: 'Soepel muisscrollen',
   },
+  // Zmage dock tagline (react-zmage) — the site's own line: images expand in place.
+  'zmage.tagline': {
+    zh: '让每张图片原位展开',
+    en: 'Expand every image in place',
+    ja: 'すべての画像をその場で拡大',
+    ko: '모든 이미지를 제자리에서 펼치기',
+    fr: 'Agrandir chaque image sur place',
+    de: 'Jedes Bild an Ort und Stelle vergrößern',
+    es: 'Expande cada imagen en su lugar',
+    pt: 'Expanda cada imagem no lugar',
+    it: 'Espandi ogni immagine sul posto',
+    ru: 'Разворачивайте каждое изображение на месте',
+    ar: 'وسّع كل صورة في مكانها',
+    hi: 'हर छवि को यथास्थान विस्तृत करें',
+    th: 'ขยายทุกภาพในตำแหน่งเดิม',
+    vi: 'Mở rộng mọi hình ảnh tại chỗ',
+    tr: 'Her görüntüyü yerinde genişletin',
+    nl: 'Vergroot elke afbeelding ter plaatse',
+  },
   // Donate — "feed the cat" (primary action) / "a little snack" (subtitle).
   'donate.feed': {
     zh: '喂胖大咪',

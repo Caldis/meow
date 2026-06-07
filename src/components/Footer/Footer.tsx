@@ -31,6 +31,14 @@ const PROJECTS: Project[] = [
     // the cross-promo initiative, content = this placement.
     href: 'https://mos.caldis.me/?utm_source=meow.caldis.me&utm_medium=referral&utm_campaign=cross-promo&utm_content=footer-dock',
   },
+  {
+    id: 'zmage',
+    name: 'Zmage',
+    taglineKey: 'zmage.tagline',
+    icon: `${PUB}/projects/zmage.png`,
+    // Same GA4-standard UTM attribution as Mos above.
+    href: 'https://zmage.caldis.me/?utm_source=meow.caldis.me&utm_medium=referral&utm_campaign=cross-promo&utm_content=footer-dock',
+  },
 ]
 
 const HeartIcon = () => (
