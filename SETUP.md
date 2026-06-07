@@ -23,7 +23,7 @@ yarn start          # dev server → http://localhost:3000
 yarn setup
 ```
 
-交互式向导会引导你填出 `src/config/site.config.json`，并清空示例（大咪）照片，给你一个干净的起点。
+交互式向导会引导你填出 `src/config/site.config.json`；最后会**询问**是否清空示例（大咪）照片（默认 `N` 不清，敲 `y` 才清），给你一个干净的起点。
 
 > 不想用向导？跳过本节，按 **第 3 节** 手动编辑两个配置文件即可——它们是唯一需要改的地方。
 
@@ -188,3 +188,19 @@ git push origin master           # 推送后 Pages 自动重新部署（CDN ~30s
 - [ ] `yarn build:code` → 提交 `docs/` → push。
 
 > 简记防泄漏三件套：**donate、dock、GA**——要么换成你自己的，要么关掉，别让它们指向原作者。
+
+---
+
+## 7. 维护示例站（仅原作者 / 想长期保留示例照片的人）
+
+如果你是在**维护这个示例站本身**（继续往大咪相册里加照片，而不是 fork 出去做自己的站），流程和重构前完全一样——**只往 `src/assets/` 里加，从不清空**：
+
+- **加 / 更新照片**：把照片丢进 `src/assets/`，跑 `build:photo-rename` → `build:photo-clean-meta` →（可选）`build:photo-optimize`；或用本机的 `photo-publish` 工作流（同名照片自动加 `.2` 序号，不覆盖已有）。然后照常 `yarn build:code` → 提交 `docs/` → push。
+
+> ⚠️ **别跑 `yarn setup`**：它是给 fork 者用的——会**覆盖 `site.config.json`**，并（在你确认时）清空示例照片。维护示例站用不到它。
+
+**会不会误清照片？**
+
+- 清照片**只**发生在 `yarn setup` 且你手动回答 `y` 时（提示默认 `N`，直接回车不清）。
+- `build:photo-rename` / `build:photo-clean-meta` / `build:photo-optimize` 都**只就地处理已有文件**，不会清空整个相册。
+- 即便误删，`src/assets/` 与 `docs/` 都在 git 里，可随时 `git restore` 还原。
