@@ -70,6 +70,8 @@ export interface SiteConfig {
   ga4MeasurementId: string
   // Custom domain → also used as the UTM `utm_source` for cross-promo links.
   domain: string
+  // Browser-tab <title> (build-injected into index.html; also set at runtime).
+  htmlTitle: string
   donate: DonateConfig
   dock: DockConfig
 }
@@ -80,6 +82,7 @@ export const BLANK_SITE_CONFIG: SiteConfig = {
   subject: { name: { en: 'Your Subject' } },
   ga4MeasurementId: '',
   domain: '',
+  htmlTitle: '',
   donate: { enabled: false, paypalUrl: '', buyMeACoffeeUrl: '', alipayQr: '', wechatQr: '' },
   dock: { enabled: false, projects: [], utm: { medium: 'referral', campaign: 'cross-promo', content: 'footer-dock' } },
 }
@@ -97,6 +100,7 @@ export const siteConfig: SiteConfig = {
   },
   ga4MeasurementId: buildConfig.gaMeasurementId,
   domain: buildConfig.domain,
+  htmlTitle: buildConfig.htmlTitle,
   donate: {
     enabled: true,
     paypalUrl: 'https://www.paypal.me/mosapp',

@@ -1,5 +1,5 @@
 // Libs
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 // Styles
 import './App.reset.scss'
 import styles from './App.module.scss'
@@ -12,8 +12,16 @@ import Dock from './site/Dock'
 // Utils
 import { AppContext } from './App.context'
 import { useScreenSize } from './App.hook'
+import { siteConfig } from './config/site.config'
 
 function App () {
+
+  // Keep the document title in sync with config — a no-op in production (the
+  // static <title> is already build-injected to the same value) but it fixes the
+  // raw %REACT_APP_SITE_TITLE% placeholder shown in dev (where there's no build).
+  useEffect(() => {
+    if (siteConfig.htmlTitle) document.title = siteConfig.htmlTitle
+  }, [])
 
   // Global
   const screenSize = useScreenSize()

@@ -33,9 +33,13 @@ try {
   execSync('react-scripts build', {
     stdio: 'inherit',
     cwd: rootDir,  // 在项目根目录执行构建命令
-    // CRA 的 InterpolateHtmlPlugin 会把 index.html 里的
-    // %REACT_APP_GA_MEASUREMENT_ID% 替换为这里传入的值(空则替换为空串 = 不追踪)。
-    env: { ...process.env, REACT_APP_GA_MEASUREMENT_ID: siteBuildConfig.gaMeasurementId || '' },
+    // CRA 的 InterpolateHtmlPlugin 会把 index.html 里的 %REACT_APP_*% 占位替换为
+    // 这里传入的值(GA id 空则替换为空串 = 不追踪)。
+    env: {
+      ...process.env,
+      REACT_APP_GA_MEASUREMENT_ID: siteBuildConfig.gaMeasurementId || '',
+      REACT_APP_SITE_TITLE: siteBuildConfig.htmlTitle || '',
+    },
   })
 } catch (err) {
   console.error('构建失败:', err)
