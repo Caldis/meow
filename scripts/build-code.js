@@ -6,6 +6,16 @@ const { execSync } = require('child_process')
 const rootDir = path.join(__dirname, '..')
 const buildPath = path.join(rootDir, 'build')
 const docsPath = path.join(rootDir, 'docs')
+
+// 站点配置(构建期个性化的单一来源,运行时由 src/config/site.config.ts 同源 import)。
+// gaMeasurementId → 注入 index.html 的 %REACT_APP_GA_MEASUREMENT_ID% 占位;
+// domain → 生成 docs/CNAME。fork 者只改这个 JSON。
+let siteBuildConfig = { domain: '', gaMeasurementId: '' }
+try {
+  siteBuildConfig = require(path.join(rootDir, 'src', 'config', 'site.config.json'))
+} catch (e) {
+  console.warn('未找到 src/config/site.config.json, 使用空值(无 GA / 无 CNAME)')
+}
 const docsGeneratedEntries = [
   'asset-manifest.json',
   'favicon.ico',
@@ -22,7 +32,10 @@ console.log('开始构建...')
 try {
   execSync('react-scripts build', {
     stdio: 'inherit',
-    cwd: rootDir  // 在项目根目录执行构建命令
+    cwd: rootDir,  // 在项目根目录执行构建命令
+    // CRA 的 InterpolateHtmlPlugin 会把 index.html 里的
+    // %REACT_APP_GA_MEASUREMENT_ID% 替换为这里传入的值(空则替换为空串 = 不追踪)。
+    env: { ...process.env, REACT_APP_GA_MEASUREMENT_ID: siteBuildConfig.gaMeasurementId || '' },
   })
 } catch (err) {
   console.error('构建失败:', err)
@@ -72,6 +85,17 @@ try {
 
   cleanDocsOutput(docsPath)
   copyDir(buildPath, docsPath)
+
+  // 生成/移除 docs/CNAME(GitHub Pages 自定义域名)。按 config.domain 生成,而不是
+  // 依赖手工保留——否则 fork 会继续占用原作者域名(两个 Pages 仓库不能同域)。
+  const cnamePath = path.join(docsPath, 'CNAME')
+  if (siteBuildConfig.domain) {
+    fs.writeFileSync(cnamePath, siteBuildConfig.domain + '\n')
+    console.log('已生成 CNAME:', siteBuildConfig.domain)
+  } else if (fs.existsSync(cnamePath)) {
+    fs.rmSync(cnamePath)
+    console.log('未配置 domain, 已移除 CNAME')
+  }
 
   // 删除 build 目录
   fs.rmSync(buildPath, { recursive: true, force: true })

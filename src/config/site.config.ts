@@ -11,6 +11,11 @@
 // and reproduces the live meow.caldis.me behavior exactly.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Build-time primitives live in a JSON sibling so the Node build scripts
+// (scripts/build-code.js — CNAME + gtag id injection) and the TS runtime read the
+// SAME source. Edit site.config.json to retarget the domain / GA id.
+import buildConfig from './site.config.json'
+
 export interface DonateConfig {
   // Master switch. When false, no donate button renders.
   enabled: boolean
@@ -65,8 +70,8 @@ export const BLANK_SITE_CONFIG: SiteConfig = {
 
 // ─── THIS SITE (大咪 · meow.caldis.me) — reproduces today's exact behavior ───
 export const siteConfig: SiteConfig = {
-  ga4MeasurementId: 'G-4B4K8TG1T3',
-  domain: 'meow.caldis.me',
+  ga4MeasurementId: buildConfig.gaMeasurementId,
+  domain: buildConfig.domain,
   donate: {
     enabled: true,
     paypalUrl: 'https://www.paypal.me/mosapp',
