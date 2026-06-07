@@ -7,6 +7,8 @@ import styles from './App.module.scss'
 import Gallery from './components/Gallery'
 import Footer from './components/Footer'
 import ThemeToggle from './components/ThemeToggle'
+// Site (owner customization) — composed into the base-library Footer container.
+import Dock from './site/Dock'
 // Utils
 import { AppContext } from './App.context'
 import { useScreenSize } from './App.hook'
@@ -46,7 +48,7 @@ function App () {
     <AppContext.Provider value={contextValue}>
       <div className={styles.app}>
         <Gallery onLightboxChange={setLightboxOpen}/>
-        <Footer hidden={lightboxOpen}/>
+        <Footer hidden={lightboxOpen}><Dock /></Footer>
         <ThemeToggle hidden={lightboxOpen}/>
       </div>
     </AppContext.Provider>
